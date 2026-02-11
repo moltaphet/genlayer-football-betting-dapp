@@ -1,4 +1,4 @@
-// DATABASE WITH STABLE LOGO LINKS
+// DATABASE WITH STABLE SVG LOGOS
 const matchData = [
     { id: "m1", date: "Today, Feb 11", t1: "Real Madrid", t2: "Barcelona", t1_img: "https://crests.football-data.org/86.svg", t2_img: "https://crests.football-data.org/81.svg" },
     { id: "m2", date: "Feb 12, 20:45", t1: "Arsenal", t2: "Man City", t1_img: "https://crests.football-data.org/57.svg", t2_img: "https://crests.football-data.org/65.svg" },
@@ -6,29 +6,38 @@ const matchData = [
     { id: "m4", date: "Feb 14, 18:30", t1: "Liverpool", t2: "Chelsea", t1_img: "https://crests.football-data.org/64.svg", t2_img: "https://crests.football-data.org/61.svg" }
 ];
 
+// STATE MANAGEMENT
+let selectedOdds = 1.5;
 let currentMatchId = "m1";
 let userAccount = null;
-let selectedOdds = 1.5;
 
+// DOM ELEMENTS
 const amountInput = document.getElementById('bet-amount');
 const payoutDisplay = document.getElementById('calc-payout');
 const netProfitDisplay = document.getElementById('net-profit');
 const lossDisplay = document.getElementById('calc-loss');
 const connectBtn = document.getElementById('connect-btn');
-const disconnectBtn = document.getElementById('disconnect-btn');
+const walletDot = document.getElementById('wallet-dot');
 
-// CALCULATOR LOGIC (PROFIT & RISK)
+// CALCULATOR LOGIC
 const calculateBets = () => {
     const amount = parseFloat(amountInput.value) || 0;
+    
+    // Total Payout = Stake * Odds
     const totalPayout = amount * selectedOdds;
+    
+    // Net Profit = (Stake * Odds) - Stake
     const netProfit = totalPayout - amount;
-    const profitPercent = ((selectedOdds - 1) * 100).toFixed(0);
+    
+    // Custom Loss Formula = Stake * Odds (as requested)
+    const riskAmount = amount * selectedOdds;
 
     payoutDisplay.innerText = totalPayout.toFixed(2);
-    netProfitDisplay.innerText = `+${netProfit.toFixed(2)} GEN (+${profitPercent}%)`;
-    lossDisplay.innerText = `-${amount.toFixed(2)} GEN (-100%)`;
+    netProfitDisplay.innerText = `+${netProfit.toFixed(2)} GEN`;
+    lossDisplay.innerText = `-${riskAmount.toFixed(2)} GEN`;
 };
 
+// ODDS SELECTION
 window.setOdds = (odds, btn) => {
     selectedOdds = odds;
     document.querySelectorAll('.odds-btn').forEach(b => {
@@ -38,10 +47,10 @@ window.setOdds = (odds, btn) => {
     calculateBets();
 };
 
-// UI UPDATE & IMAGE ERROR HANDLING
-const updateUI = (matchId) => {
-    currentMatchId = matchId;
-    const data = matchData.find(m => m.id === matchId);
+// UI UPDATE ENGINE
+const updateUI = (id) => {
+    currentMatchId = id;
+    const data = matchData.find(m => m.id === id);
     
     document.getElementById('match-date-display').innerText = data.date;
     document.getElementById('team1-name').innerText = data.t1;
@@ -53,6 +62,7 @@ const updateUI = (matchId) => {
     img1.src = data.t1_img;
     img2.src = data.t2_img;
 
+    // Image Fallback
     const fallback = 'https://cdn-icons-png.flaticon.com/512/53/53283.png';
     img1.onerror = () => { img1.src = fallback; };
     img2.onerror = () => { img2.src = fallback; };
@@ -61,57 +71,54 @@ const updateUI = (matchId) => {
     calculateBets();
 };
 
+// SIDEBAR RENDERER
 const renderSidebar = () => {
     const list = document.getElementById('side-match-list');
     list.innerHTML = '';
-    matchData.forEach(match => {
-        const isActive = match.id === currentMatchId;
+    matchData.forEach(m => {
+        const isActive = m.id === currentMatchId;
         const card = document.createElement('div');
-        card.className = `match-card p-4 rounded-2xl flex flex-col gap-1 ${isActive ? 'active-match' : 'bg-white'}`;
+        card.className = `match-card p-4 rounded-2xl flex flex-col ${isActive ? 'active-match' : 'bg-white shadow-sm'}`;
         card.innerHTML = `
-            <span class="text-[9px] font-bold ${isActive ? 'text-blue-500' : 'text-slate-400'} uppercase">${match.date}</span>
-            <div class="flex justify-between items-center text-[11px] font-black text-slate-800">
-                <span>${match.t1} vs ${match.t2}</span>
-                <div class="w-1.5 h-1.5 rounded-full ${isActive ? 'bg-blue-600 animate-pulse' : 'bg-slate-200'}"></div>
-            </div>`;
-        card.onclick = () => updateUI(match.id);
+            <span class="text-[9px] font-bold ${isActive ? 'text-blue-500' : 'text-slate-400'} uppercase">${m.date}</span>
+            <span class="text-[11px] font-black text-slate-800">${m.t1} vs ${m.t2}</span>
+        `;
+        card.onclick = () => updateUI(m.id);
         list.appendChild(card);
     });
 };
 
-// WALLET INTERACTION
-const connect = async () => {
+// WALLET CONNECTION (WEB3)
+const connectWallet = async () => {
     if (window.ethereum) {
         try {
             const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
             userAccount = accounts[0];
             connectBtn.querySelector('span').innerText = userAccount.slice(0, 6) + "..." + userAccount.slice(-4);
-            document.getElementById('wallet-dot').className = "w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.4)]";
-            disconnectBtn.classList.add('hidden');
-        } catch (e) { console.error(e); }
-    } else { alert("MetaMask not found!"); }
+            walletDot.className = "w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.4)]";
+        } catch (error) {
+            console.error("User denied account access");
+        }
+    } else {
+        alert("Please install MetaMask!");
+    }
 };
 
-const disconnect = () => {
-    userAccount = null;
-    connectBtn.querySelector('span').innerText = "Connect Wallet";
-    document.getElementById('wallet-dot').className = "w-2.5 h-2.5 bg-slate-300 rounded-full";
-    disconnectBtn.classList.add('hidden');
-};
-
-// INITIALIZE
+// EVENT LISTENERS
 amountInput.oninput = calculateBets;
-connectBtn.onclick = () => userAccount ? disconnectBtn.classList.toggle('hidden') : connect();
-disconnectBtn.onclick = (e) => { e.stopPropagation(); disconnect(); };
+connectBtn.onclick = connectWallet;
 
 document.getElementById('bet-t1').onclick = () => {
     const team = matchData.find(m => m.id === currentMatchId).t1;
-    alert(`BET CONFIRMED: ${amountInput.value} GEN on ${team} at ${selectedOdds}x odds.`);
+    alert(`TRANSACTION: Bet ${amountInput.value} GEN on ${team}`);
 };
 
 document.getElementById('bet-t2').onclick = () => {
     const team = matchData.find(m => m.id === currentMatchId).t2;
-    alert(`BET CONFIRMED: ${amountInput.value} GEN on ${team} at ${selectedOdds}x odds.`);
+    alert(`TRANSACTION: Bet ${amountInput.value} GEN on ${team}`);
 };
 
-window.onload = () => { updateUI("m1"); };
+// INITIALIZE APP
+window.onload = () => {
+    updateUI("m1");
+};
