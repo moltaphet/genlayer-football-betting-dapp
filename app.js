@@ -19,25 +19,26 @@ const lossDisplay = document.getElementById('calc-loss');
 const connectBtn = document.getElementById('connect-btn');
 const walletDot = document.getElementById('wallet-dot');
 
-// CALCULATOR LOGIC
+// BALANCED RISK CALCULATOR LOGIC
 const calculateBets = () => {
     const amount = parseFloat(amountInput.value) || 0;
     
-    // Total Payout = Stake * Odds
+    // Total Payout calculation
     const totalPayout = amount * selectedOdds;
     
-    // Net Profit = (Stake * Odds) - Stake
+    // Net Profit calculation (Potential Gain)
     const netProfit = totalPayout - amount;
     
-    // Custom Loss Formula = Stake * Odds (as requested)
-    const riskAmount = amount * selectedOdds;
+    // NEW LOSS LOGIC: Risk equals the Potential Net Profit
+    // If user stands to win 15 GEN, they also stand to lose only 15 GEN.
+    const riskAmount = netProfit;
 
     payoutDisplay.innerText = totalPayout.toFixed(2);
     netProfitDisplay.innerText = `+${netProfit.toFixed(2)} GEN`;
     lossDisplay.innerText = `-${riskAmount.toFixed(2)} GEN`;
 };
 
-// ODDS SELECTION
+// ODDS SELECTION UI
 window.setOdds = (odds, btn) => {
     selectedOdds = odds;
     document.querySelectorAll('.odds-btn').forEach(b => {
@@ -62,7 +63,6 @@ const updateUI = (id) => {
     img1.src = data.t1_img;
     img2.src = data.t2_img;
 
-    // Image Fallback
     const fallback = 'https://cdn-icons-png.flaticon.com/512/53/53283.png';
     img1.onerror = () => { img1.src = fallback; };
     img2.onerror = () => { img2.src = fallback; };
@@ -97,10 +97,10 @@ const connectWallet = async () => {
             connectBtn.querySelector('span').innerText = userAccount.slice(0, 6) + "..." + userAccount.slice(-4);
             walletDot.className = "w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.4)]";
         } catch (error) {
-            console.error("User denied account access");
+            console.error("Connection failed");
         }
     } else {
-        alert("Please install MetaMask!");
+        alert("Wallet extension not detected");
     }
 };
 
@@ -110,15 +110,15 @@ connectBtn.onclick = connectWallet;
 
 document.getElementById('bet-t1').onclick = () => {
     const team = matchData.find(m => m.id === currentMatchId).t1;
-    alert(`TRANSACTION: Bet ${amountInput.value} GEN on ${team}`);
+    alert(`ACTION: Staking on ${team}`);
 };
 
 document.getElementById('bet-t2').onclick = () => {
     const team = matchData.find(m => m.id === currentMatchId).t2;
-    alert(`TRANSACTION: Bet ${amountInput.value} GEN on ${team}`);
+    alert(`ACTION: Staking on ${team}`);
 };
 
-// INITIALIZE APP
+// INITIALIZE
 window.onload = () => {
     updateUI("m1");
 };
