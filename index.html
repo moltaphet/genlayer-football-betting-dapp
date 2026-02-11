@@ -14,9 +14,9 @@
 <body class="bg-[#F8FAFC] text-[#1E293B] min-h-screen flex items-center justify-center p-4 relative">
 
     <nav class="absolute top-6 right-6 z-50">
-        <button id="connect-btn" onclick="connectWallet()" class="bg-white border border-slate-200 px-6 py-2.5 rounded-2xl font-extrabold text-[11px] shadow-sm hover:shadow-md hover:border-blue-300 transition-all uppercase tracking-widest flex items-center gap-2">
-            <div class="w-2 h-2 bg-slate-300 rounded-full" id="wallet-dot"></div>
-            Connect Wallet
+        <button id="connect-btn" class="bg-white border border-slate-200 px-6 py-2.5 rounded-2xl font-extrabold text-[11px] shadow-sm hover:shadow-md transition-all uppercase tracking-widest flex items-center gap-2">
+            <div id="wallet-dot" class="w-2 h-2 bg-slate-300 rounded-full"></div>
+            <span>Connect Wallet</span>
         </button>
     </nav>
 
@@ -25,65 +25,50 @@
         <div class="text-center mb-12">
             <span class="bg-blue-50 text-blue-600 text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full border border-blue-100">GenLayer Network</span>
             <h1 class="text-4xl font-extrabold mt-4 tracking-tight">Football <span class="text-blue-600">AI</span></h1>
-            <p class="text-slate-400 text-sm mt-1">Decentralized Prediction Market</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center w-full max-w-4xl">
             
-            <div class="bg-white rounded-[3rem] shadow-xl shadow-blue-100/50 border border-white p-8 flex flex-col items-center justify-center h-80 transition-all hover:scale-105">
+            <div class="bg-white rounded-[3rem] shadow-xl border border-white p-8 flex flex-col items-center justify-center h-80">
                 <div class="w-28 h-28 bg-slate-50 rounded-full flex items-center justify-center border-4 border-white shadow-md mb-6 overflow-hidden">
-                    <img id="team1-logo" src="https://flagcdn.com/w160/es.png" class="w-16 h-16 object-contain">
+                    <img id="team1-logo" src="" class="w-16 h-16 object-contain">
                 </div>
-                <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Home Team</span>
-                <span id="team1-name" class="text-xl font-black text-slate-800 text-center uppercase tracking-tight tracking-tight">REAL MADRID</span>
+                <span id="team1-name" class="text-xl font-black text-slate-800 uppercase"></span>
             </div>
 
-            <div class="bg-white rounded-[3rem] shadow-2xl shadow-blue-200/50 p-8 border border-white z-10 relative">
+            <div class="bg-white rounded-[3rem] shadow-2xl p-8 border border-white z-10">
                 <div class="flex bg-slate-100 p-1.5 rounded-2xl mb-8">
-                    <button onclick="changeDay('today')" id="btn-today" class="active-date flex-1 py-2.5 text-[11px] font-bold rounded-xl transition-all uppercase">Today</button>
-                    <button onclick="changeDay('tomorrow')" id="btn-tomorrow" class="flex-1 py-2.5 text-[11px] font-bold text-slate-500 rounded-xl transition-all uppercase">Tomorrow</button>
+                    <button id="btn-today" class="flex-1 py-2.5 text-[11px] font-bold rounded-xl uppercase">Today</button>
+                    <button id="btn-tomorrow" class="flex-1 py-2.5 text-[11px] font-bold text-slate-500 rounded-xl uppercase">Tomorrow</button>
                 </div>
 
-                <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-[2.5rem] p-6 text-white mb-8 shadow-lg shadow-blue-200 relative overflow-hidden">
-                    <div class="relative z-10">
-                        <p class="text-blue-100 text-[10px] font-semibold uppercase tracking-wider opacity-80">Total Liquidity Pool</p>
-                        <div class="flex items-baseline gap-1.5 mt-2">
-                            <span id="pool-amount" class="text-4xl font-black">0.00</span>
-                            <span class="text-blue-200 text-xs font-bold uppercase">Tokens</span>
-                        </div>
+                <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-[2.5rem] p-6 text-white mb-8">
+                    <p class="text-blue-100 text-[10px] font-semibold uppercase opacity-80">Total Pool</p>
+                    <div class="flex items-baseline gap-1.5 mt-2">
+                        <span id="pool-amount" class="text-4xl font-black">0.00</span>
+                        <span class="text-blue-200 text-xs font-bold uppercase text-[10px]">Tokens</span>
                     </div>
                 </div>
 
                 <div class="space-y-4">
                     <div class="grid grid-cols-2 gap-3">
-                        <button onclick="bet(1)" class="py-4 bg-slate-50 hover:bg-white border-2 border-transparent hover:border-blue-500 rounded-2xl text-[11px] font-black transition-all shadow-sm uppercase">Bet T1</button>
-                        <button onclick="bet(2)" class="py-4 bg-slate-50 hover:bg-white border-2 border-transparent hover:border-blue-500 rounded-2xl text-[11px] font-black transition-all shadow-sm uppercase">Bet T2</button>
+                        <button id="bet-t1" class="py-4 bg-slate-50 rounded-2xl text-[11px] font-black uppercase hover:bg-blue-50 transition-all">Bet T1</button>
+                        <button id="bet-t2" class="py-4 bg-slate-50 rounded-2xl text-[11px] font-black uppercase hover:bg-blue-50 transition-all">Bet T2</button>
                     </div>
-                    <button onclick="resolveMarket()" class="w-full py-5 bg-slate-900 text-white rounded-[1.5rem] text-[11px] font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 uppercase tracking-widest">
-                        Execute AI Resolution
-                    </button>
-                </div>
-
-                <div class="mt-8 flex items-center justify-between border-t border-slate-50 pt-6 px-1">
-                    <div class="flex items-center gap-2">
-                        <div class="w-2.5 h-2.5 bg-yellow-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(250,204,21,0.6)]"></div>
-                        <span id="status" class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Awaiting Result</span>
-                    </div>
-                    <span id="match-time" class="text-[11px] font-black text-blue-600 uppercase">Live</span>
+                    <button id="resolve-btn" class="w-full py-5 bg-slate-900 text-white rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest">Execute AI Resolution</button>
                 </div>
             </div>
 
-            <div class="bg-white rounded-[3rem] shadow-xl shadow-blue-100/50 border border-white p-8 flex flex-col items-center justify-center h-80 transition-all hover:scale-105">
+            <div class="bg-white rounded-[3rem] shadow-xl border border-white p-8 flex flex-col items-center justify-center h-80">
                 <div class="w-28 h-28 bg-slate-50 rounded-full flex items-center justify-center border-4 border-white shadow-md mb-6 overflow-hidden">
-                    <img id="team2-logo" src="https://flagcdn.com/w160/es.png" class="w-16 h-16 object-contain">
+                    <img id="team2-logo" src="" class="w-16 h-16 object-contain">
                 </div>
-                <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Away Team</span>
-                <span id="team2-name" class="text-xl font-black text-slate-800 text-center uppercase tracking-tight">BARCELONA</span>
+                <span id="team2-name" class="text-xl font-black text-slate-800 uppercase"></span>
             </div>
 
         </div>
     </div>
 
-    <script type="module" src="./app.js"></script>
+    <script src="./app.js"></script>
 </body>
 </html>
