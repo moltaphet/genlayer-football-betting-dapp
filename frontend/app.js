@@ -4,7 +4,7 @@ import { createGenLayerClient } from 'genlayer-js';
 const client = createGenLayerClient({ endpoint: "http://localhost:8080" });
 
 // 2. IMPORTANT: Paste your purple address from GenLayer Studio here
-const CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000000"; 
+const CONTRACT_ADDRESS = "0xEBb2863137Dff7e96886090D303373E8Ec9CF5B8"; 
 
 // Function to refresh data from the blockchain
 async function refreshData() {
