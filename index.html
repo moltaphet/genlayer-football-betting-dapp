@@ -1,79 +1,65 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Sports Betting | GenLayer</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-    <style> 
-        body { font-family: 'Plus Jakarta Sans', sans-serif; } 
-        .active-date { background-color: #2563eb !important; color: white !important; }
-    </style>
-</head>
 <body class="bg-[#F8FAFC] text-[#1E293B] min-h-screen flex items-center justify-center p-4">
 
-    <div class="max-w-md w-full bg-white rounded-[2.5rem] shadow-xl shadow-blue-100/50 p-8 border border-white">
+    <div class="max-w-2xl w-full flex flex-col items-center">
         
-        <div class="text-center mb-6">
+        <div class="text-center mb-8">
             <span class="bg-blue-50 text-blue-600 text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full">GenLayer Network</span>
-            <h1 class="text-3xl font-extrabold mt-4 tracking-tight">Football <span class="text-blue-600">AI</span></h1>
-            <p class="text-slate-400 text-sm mt-1">Decentralized Prediction Market</p>
+            <h1 class="text-4xl font-extrabold mt-4 tracking-tight">Football <span class="text-blue-600">AI</span></h1>
         </div>
 
-        <div class="flex bg-slate-100 p-1 rounded-2xl mb-6">
-            <button onclick="changeDay('today')" id="btn-today" class="active-date flex-1 py-2 text-xs font-bold rounded-xl transition-all">TODAY</button>
-            <button onclick="changeDay('tomorrow')" id="btn-tomorrow" class="flex-1 py-2 text-xs font-bold text-slate-500 rounded-xl transition-all">TOMORROW</button>
-        </div>
-
-        <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-[2rem] p-6 text-white mb-8 shadow-lg shadow-blue-200">
-            <p class="text-blue-100 text-xs font-semibold uppercase opacity-80">Total Liquidity Pool</p>
-            <div class="flex items-baseline gap-2 mt-1">
-                <span id="pool-amount" class="text-4xl font-black">0.00</span>
-                <span class="text-blue-200 text-sm font-bold">TOKENS</span>
-            </div>
-        </div>
-
-        <div class="flex justify-between items-center gap-4 mb-8">
-            <div class="flex-1 bg-slate-50 border border-slate-100 rounded-[2rem] p-4 flex flex-col items-center shadow-sm">
-                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-inner mb-3 overflow-hidden">
-                    <img id="team1-logo" src="https://flagcdn.com/w80/es.png" class="w-10 h-10 object-contain">
-                </div>
-                <span class="text-[10px] font-black uppercase tracking-tight text-slate-400 mb-1">TEAM 1</span>
-                <span id="team1-name" class="text-xs font-extrabold text-slate-800 text-center">REAL MADRID</span>
-            </div>
-
-            <div class="text-blue-500 font-black italic text-xs">VS</div>
-
-            <div class="flex-1 bg-slate-50 border border-slate-100 rounded-[2rem] p-4 flex flex-col items-center shadow-sm">
-                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-inner mb-3 overflow-hidden">
-                    <img id="team2-logo" src="https://flagcdn.com/w160/es.png" class="w-10 h-10 object-contain">
-                </div>
-                <span class="text-[10px] font-black uppercase tracking-tight text-slate-400 mb-1">TEAM 2</span>
-                <span id="team2-name" class="text-xs font-extrabold text-slate-800 text-center">BARCELONA</span>
-            </div>
-        </div>
-
-        <div class="space-y-4">
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="bet(1)" class="py-4 bg-slate-50 hover:bg-white border-2 border-transparent hover:border-blue-500 rounded-2xl font-bold transition-all duration-300">Bet Team 1</button>
-                <button onclick="bet(2)" class="py-4 bg-slate-50 hover:bg-white border-2 border-transparent hover:border-blue-500 rounded-2xl font-bold transition-all duration-300">Bet Team 2</button>
-            </div>
+        <div class="flex flex-col md:flex-row items-center justify-center gap-6 w-full">
             
-            <button onclick="resolveMarket()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200">
-                Execute AI Resolution
-            </button>
-        </div>
-
-        <div class="mt-8 flex items-center justify-between px-2">
-            <div class="flex items-center gap-2">
-                <div class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-                <span id="status" class="text-[11px] font-bold text-slate-500 uppercase">Awaiting Result</span>
+            <div class="w-48 h-64 bg-white rounded-[2.5rem] shadow-xl shadow-blue-100/50 border border-white flex flex-col items-center justify-center p-6 order-2 md:order-1">
+                <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center border-4 border-white shadow-md mb-4 overflow-hidden">
+                    <img id="team1-logo" src="https://flagcdn.com/w160/es.png" class="w-14 h-14 object-contain">
+                </div>
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Team 1</span>
+                <span id="team1-name" class="text-lg font-black text-slate-800 text-center leading-tight">REAL MADRID</span>
             </div>
-            <span id="match-time" class="text-[11px] font-black text-blue-600 uppercase">LIVE</span>
+
+            <div class="w-72 bg-white rounded-[2.5rem] shadow-2xl shadow-blue-100/50 p-6 border border-white z-10 order-1 md:order-2">
+                <div class="flex bg-slate-100 p-1 rounded-2xl mb-6">
+                    <button onclick="changeDay('today')" id="btn-today" class="active-date flex-1 py-2 text-[10px] font-bold rounded-xl transition-all">TODAY</button>
+                    <button onclick="changeDay('tomorrow')" id="btn-tomorrow" class="flex-1 py-2 text-[10px] font-bold text-slate-500 rounded-xl transition-all uppercase">Tomorrow</button>
+                </div>
+
+                <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-[2rem] p-5 text-white mb-6 shadow-lg shadow-blue-200">
+                    <p class="text-blue-100 text-[9px] font-semibold uppercase opacity-80">Total Pool</p>
+                    <div class="flex items-baseline gap-1 mt-1">
+                        <span id="pool-amount" class="text-3xl font-black">0.00</span>
+                        <span class="text-blue-200 text-[10px] font-bold uppercase">Tokens</span>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="bet(1)" class="py-3 bg-slate-50 hover:bg-white border-2 border-transparent hover:border-blue-500 rounded-2xl text-[10px] font-black transition-all">BET T1</button>
+                        <button onclick="bet(2)" class="py-3 bg-slate-50 hover:bg-white border-2 border-transparent hover:border-blue-500 rounded-2xl text-[10px] font-black transition-all">BET T2</button>
+                    </div>
+                    <button onclick="resolveMarket()" class="w-full py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black hover:bg-slate-800 transition-all shadow-lg">
+                        EXECUTE AI RESOLUTION
+                    </button>
+                </div>
+
+                <div class="mt-6 flex items-center justify-between px-1">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                        <span id="status" class="text-[9px] font-bold text-slate-400 uppercase">Awaiting Result</span>
+                    </div>
+                    <span id="match-time" class="text-[9px] font-black text-blue-600 uppercase">Live</span>
+                </div>
+            </div>
+
+            <div class="w-48 h-64 bg-white rounded-[2.5rem] shadow-xl shadow-blue-100/50 border border-white flex flex-col items-center justify-center p-6 order-3">
+                <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center border-4 border-white shadow-md mb-4 overflow-hidden">
+                    <img id="team2-logo" src="https://flagcdn.com/w160/es.png" class="w-14 h-14 object-contain">
+                </div>
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Team 2</span>
+                <span id="team2-name" class="text-lg font-black text-slate-800 text-center leading-tight">BARCELONA</span>
+            </div>
+
         </div>
     </div>
 
     <script type="module" src="./app.js"></script>
 </body>
-</html>
