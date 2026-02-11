@@ -4,33 +4,39 @@ const client = createGenLayerClient({ endpoint: "http://localhost:8080" });
 const CONTRACT_ADDRESS = "0xEBb2863137Dff7e96886090D303373E8Ec9CF5B8"; 
 
 const matches = {
-    today: { t1: "Real Madrid", t2: "Barcelona", time: "LIVE" },
-    tomorrow: { t1: "Arsenal", t2: "Man City", time: "FEB 12 - 20:45" }
+    today: { 
+        t1: "Real Madrid", 
+        t2: "Barcelona", 
+        time: "LIVE",
+        t1_logo: "https://flagcdn.com/w80/es.png",
+        t2_logo: "https://flagcdn.com/w80/es.png"
+    },
+    tomorrow: { 
+        t1: "Arsenal", 
+        t2: "Man City", 
+        time: "FEB 12 - 20:45",
+        t1_logo: "https://flagcdn.com/w80/gb.png",
+        t2_logo: "https://flagcdn.com/w80/gb.png"
+    }
 };
 
-// UI: Day Switcher
 window.changeDay = function(day) {
     const btnToday = document.getElementById('btn-today');
     const btnTomorrow = document.getElementById('btn-tomorrow');
     
-    if (day === 'today') {
-        btnToday.classList.add('active-date');
-        btnToday.classList.remove('text-slate-500');
-        btnTomorrow.classList.remove('active-date');
-        btnTomorrow.classList.add('text-slate-500');
-    } else {
-        btnTomorrow.classList.add('active-date');
-        btnTomorrow.classList.remove('text-slate-500');
-        btnToday.classList.remove('active-date');
-        btnToday.classList.add('text-slate-500');
-    }
+    btnToday.classList.toggle('active-date', day === 'today');
+    btnToday.classList.toggle('text-slate-500', day !== 'today');
+    btnTomorrow.classList.toggle('active-date', day === 'tomorrow');
+    btnTomorrow.classList.toggle('text-slate-500', day !== 'tomorrow');
 
-    document.getElementById('team1-label').innerText = matches[day].t1;
-    document.getElementById('team2-label').innerText = matches[day].t2;
+    // Update Team Info Boxes
+    document.getElementById('team1-name').innerText = matches[day].t1.toUpperCase();
+    document.getElementById('team2-name').innerText = matches[day].t2.toUpperCase();
+    document.getElementById('team1-logo').src = matches[day].t1_logo;
+    document.getElementById('team2-logo').src = matches[day].t2_logo;
     document.getElementById('match-time').innerText = matches[day].time;
 };
 
-// Blockchain: Read
 async function refreshData() {
     try {
         const data = await client.readContract({
@@ -42,11 +48,10 @@ async function refreshData() {
             document.getElementById('status').innerText = "Match Resolved";
         }
     } catch (err) { 
-        console.log("Sync error - Check if 'genlayer up' is running."); 
+        console.log("Sync error - Ensure 'genlayer up' is running."); 
     }
 }
 
-// Blockchain: Write Bet
 window.bet = async (side) => {
     const amount = prompt("Enter amount to bet:");
     if(!amount) return;
@@ -59,22 +64,17 @@ window.bet = async (side) => {
         });
         alert("Bet recorded!");
         refreshData();
-    } catch (err) { alert("Error: Node not responding."); }
+    } catch (err) { alert("Error: Check your local node."); }
 };
 
-// Blockchain: Resolve
 window.resolveMarket = async () => {
-    alert("AI Oracle analyzing data...");
+    alert("AI Oracle is checking the result...");
     try {
-        await client.writeContract({
-            address: CONTRACT_ADDRESS,
-            functionName: 'resolve'
-        });
+        await client.writeContract({ address: CONTRACT_ADDRESS, functionName: 'resolve' });
         refreshData();
     } catch (err) { alert("Resolution failed."); }
 };
 
-// Init
 window.onload = () => {
     changeDay('today');
     refreshData();

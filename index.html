@@ -34,13 +34,27 @@
             </div>
         </div>
 
-        <div class="space-y-4">
-            <div class="flex justify-between items-center px-4 mb-4">
-                <span id="team1-label" class="text-lg font-black tracking-tight uppercase">Team 1</span>
-                <span class="text-blue-500 font-bold text-xs italic">VS</span>
-                <span id="team2-label" class="text-lg font-black tracking-tight uppercase">Team 2</span>
+        <div class="flex justify-between items-center gap-4 mb-8">
+            <div class="flex-1 bg-slate-50 border border-slate-100 rounded-[2rem] p-4 flex flex-col items-center shadow-sm">
+                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-inner mb-3 overflow-hidden">
+                    <img id="team1-logo" src="https://flagcdn.com/w80/es.png" class="w-10 h-10 object-contain">
+                </div>
+                <span class="text-[10px] font-black uppercase tracking-tight text-slate-400 mb-1">TEAM 1</span>
+                <span id="team1-name" class="text-xs font-extrabold text-slate-800 text-center">REAL MADRID</span>
             </div>
 
+            <div class="text-blue-500 font-black italic text-xs">VS</div>
+
+            <div class="flex-1 bg-slate-50 border border-slate-100 rounded-[2rem] p-4 flex flex-col items-center shadow-sm">
+                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-inner mb-3 overflow-hidden">
+                    <img id="team2-logo" src="https://flagcdn.com/w160/es.png" class="w-10 h-10 object-contain">
+                </div>
+                <span class="text-[10px] font-black uppercase tracking-tight text-slate-400 mb-1">TEAM 2</span>
+                <span id="team2-name" class="text-xs font-extrabold text-slate-800 text-center">BARCELONA</span>
+            </div>
+        </div>
+
+        <div class="space-y-4">
             <div class="grid grid-cols-2 gap-3">
                 <button onclick="bet(1)" class="py-4 bg-slate-50 hover:bg-white border-2 border-transparent hover:border-blue-500 rounded-2xl font-bold transition-all duration-300">Bet Team 1</button>
                 <button onclick="bet(2)" class="py-4 bg-slate-50 hover:bg-white border-2 border-transparent hover:border-blue-500 rounded-2xl font-bold transition-all duration-300">Bet Team 2</button>
