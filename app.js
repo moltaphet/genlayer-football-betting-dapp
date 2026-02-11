@@ -1,49 +1,74 @@
-// Database with direct stable links
-const matches = {
-    today: { 
-        t1: "Real Madrid", 
+// Database of matches
+const matchData = [
+    {
+        id: "m1",
+        date: "Feb 11",
+        t1: "Real Madrid",
         t2: "FC Barcelona",
         t1_img: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg",
         t2_img: "https://upload.wikimedia.org/wikipedia/en/thumb/4/47/FC_Barcelona_logo.svg/1024px-FC_Barcelona_logo.svg.png"
     },
-    tomorrow: { 
-        t1: "Arsenal", 
+    {
+        id: "m2",
+        date: "Feb 12",
+        t1: "Arsenal",
         t2: "Manchester City",
         t1_img: "https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg",
         t2_img: "https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg"
+    },
+    {
+        id: "m3",
+        date: "Feb 13",
+        t1: "Bayern Munich",
+        t2: "PSG",
+        t1_img: "https://upload.wikimedia.org/wikipedia/en/thumb/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg/1024px-FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg.png",
+        t2_img: "https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg"
     }
-};
+];
 
-const updateUI = (day) => {
-    const data = matches[day];
+let currentMatchId = "m1";
+
+const updateUI = (matchId) => {
+    currentMatchId = matchId;
+    const data = matchData.find(m => m.id === matchId);
     
-    // Update text elements
+    // Update main display
     document.getElementById('team1-name').innerText = data.t1.toUpperCase();
     document.getElementById('team2-name').innerText = data.t2.toUpperCase();
     
-    // Update logo sources directly
     const img1 = document.getElementById('team1-logo');
     const img2 = document.getElementById('team2-logo');
-    
     img1.src = data.t1_img;
     img2.src = data.t2_img;
 
-    // Error handling: show a football icon if link fails
     const fallback = "https://cdn-icons-png.flaticon.com/512/53/53283.png";
     img1.onerror = () => { img1.src = fallback; };
     img2.onerror = () => { img2.src = fallback; };
-    
-    // Style active/inactive date buttons
-    const btnToday = document.getElementById('btn-today');
-    const btnTomorrow = document.getElementById('btn-tomorrow');
-    
-    if (day === 'today') {
-        btnToday.className = 'active-date flex-1 py-2.5 text-[11px] font-bold rounded-xl uppercase';
-        btnTomorrow.className = 'flex-1 py-2.5 text-[11px] font-bold text-slate-500 rounded-xl uppercase';
-    } else {
-        btnToday.className = 'flex-1 py-2.5 text-[11px] font-bold text-slate-500 rounded-xl uppercase';
-        btnTomorrow.className = 'active-date flex-1 py-2.5 text-[11px] font-bold rounded-xl uppercase';
-    }
+
+    // Refresh the sidebar to show active state
+    renderSidebar();
+};
+
+const renderSidebar = () => {
+    const listContainer = document.getElementById('side-match-list');
+    listContainer.innerHTML = '';
+
+    matchData.forEach(match => {
+        const isActive = match.id === currentMatchId;
+        const card = document.createElement('div');
+        card.className = `match-card p-4 rounded-2xl border border-slate-100 flex flex-col gap-1 ${isActive ? 'active-match shadow-sm' : 'bg-white'}`;
+        
+        card.innerHTML = `
+            <span class="text-[9px] font-bold text-slate-400 uppercase">${match.date}</span>
+            <div class="flex justify-between items-center">
+                <span class="text-[11px] font-black text-slate-800">${match.t1} vs ${match.t2}</span>
+                <div class="w-1.5 h-1.5 rounded-full ${isActive ? 'bg-blue-600 animate-pulse' : 'bg-slate-200'}"></div>
+            </div>
+        `;
+        
+        card.onclick = () => updateUI(match.id);
+        listContainer.appendChild(card);
+    });
 };
 
 const connect = async () => {
@@ -51,25 +76,23 @@ const connect = async () => {
         try {
             const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
             const btn = document.getElementById('connect-btn');
-            const address = accounts[0];
-            
-            // Format: 0x1234...abcd
-            btn.querySelector('span').innerText = address.slice(0, 6) + "..." + address.slice(-4);
+            btn.querySelector('span').innerText = accounts[0].slice(0, 6) + "..." + accounts[0].slice(-4);
             document.getElementById('wallet-dot').className = "w-2 h-2 bg-green-500 rounded-full animate-pulse";
         } catch (error) {
-            console.error("User rejected the request.");
+            console.error("User rejected");
         }
     } else {
-        alert("MetaMask not detected!");
+        alert("Install MetaMask");
     }
 };
 
-// Event Listeners
+// Events
 document.getElementById('connect-btn').onclick = connect;
-document.getElementById('btn-today').onclick = () => updateUI('today');
-document.getElementById('btn-tomorrow').onclick = () => updateUI('tomorrow');
+document.getElementById('bet-t1').onclick = () => alert(`Bet placed on ${matchData.find(m => m.id === currentMatchId).t1}`);
+document.getElementById('bet-t2').onclick = () => alert(`Bet placed on ${matchData.find(m => m.id === currentMatchId).t2}`);
 
-// Initialization
+// Start
 window.onload = () => {
-    updateUI('today');
+    renderSidebar();
+    updateUI("m1");
 };
