@@ -1,28 +1,32 @@
-// DATABASE
+// DATABASE WITH STABLE LOGO LINKS
 const matchData = [
-    { id: "m1", date: "Today, Feb 11", t1: "Real Madrid", t2: "FC Barcelona", t1_img: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg", t2_img: "https://upload.wikimedia.org/wikipedia/en/thumb/4/47/FC_Barcelona_logo.svg/1024px-FC_Barcelona_logo.svg.png" },
-    { id: "m2", date: "Feb 12, 20:45", t1: "Arsenal", t2: "Manchester City", t1_img: "https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg", t2_img: "https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg" },
-    { id: "m3", date: "Feb 13, 21:00", t1: "Bayern Munich", t2: "Paris SG", t1_img: "https://upload.wikimedia.org/wikipedia/en/thumb/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg/1024px-FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg.png", t2_img: "https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg" },
-    { id: "m4", date: "Feb 14, 18:30", t1: "Liverpool", t2: "Chelsea", t1_img: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg", t2_img: "https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg" }
+    { id: "m1", date: "Today, Feb 11", t1: "Real Madrid", t2: "Barcelona", t1_img: "https://crests.football-data.org/86.svg", t2_img: "https://crests.football-data.org/81.svg" },
+    { id: "m2", date: "Feb 12, 20:45", t1: "Arsenal", t2: "Man City", t1_img: "https://crests.football-data.org/57.svg", t2_img: "https://crests.football-data.org/65.svg" },
+    { id: "m3", date: "Feb 13, 21:00", t1: "B. Munich", t2: "PSG", t1_img: "https://crests.football-data.org/5.svg", t2_img: "https://crests.football-data.org/524.svg" },
+    { id: "m4", date: "Feb 14, 18:30", t1: "Liverpool", t2: "Chelsea", t1_img: "https://crests.football-data.org/64.svg", t2_img: "https://crests.football-data.org/61.svg" }
 ];
 
-// STATE
 let currentMatchId = "m1";
 let userAccount = null;
 let selectedOdds = 1.5;
 
-// DOM ELEMENTS
 const amountInput = document.getElementById('bet-amount');
 const payoutDisplay = document.getElementById('calc-payout');
+const netProfitDisplay = document.getElementById('net-profit');
 const lossDisplay = document.getElementById('calc-loss');
 const connectBtn = document.getElementById('connect-btn');
 const disconnectBtn = document.getElementById('disconnect-btn');
 
-// CALCULATION LOGIC
+// CALCULATOR LOGIC (PROFIT & RISK)
 const calculateBets = () => {
     const amount = parseFloat(amountInput.value) || 0;
-    payoutDisplay.innerText = (amount * selectedOdds).toFixed(2);
-    lossDisplay.innerText = `-${amount.toFixed(2)} GEN`;
+    const totalPayout = amount * selectedOdds;
+    const netProfit = totalPayout - amount;
+    const profitPercent = ((selectedOdds - 1) * 100).toFixed(0);
+
+    payoutDisplay.innerText = totalPayout.toFixed(2);
+    netProfitDisplay.innerText = `+${netProfit.toFixed(2)} GEN (+${profitPercent}%)`;
+    lossDisplay.innerText = `-${amount.toFixed(2)} GEN (-100%)`;
 };
 
 window.setOdds = (odds, btn) => {
@@ -34,16 +38,27 @@ window.setOdds = (odds, btn) => {
     calculateBets();
 };
 
-// UI UPDATES
+// UI UPDATE & IMAGE ERROR HANDLING
 const updateUI = (matchId) => {
     currentMatchId = matchId;
     const data = matchData.find(m => m.id === matchId);
+    
     document.getElementById('match-date-display').innerText = data.date;
     document.getElementById('team1-name').innerText = data.t1;
     document.getElementById('team2-name').innerText = data.t2;
-    document.getElementById('team1-logo').src = data.t1_img;
-    document.getElementById('team2-logo').src = data.t2_img;
+    
+    const img1 = document.getElementById('team1-logo');
+    const img2 = document.getElementById('team2-logo');
+    
+    img1.src = data.t1_img;
+    img2.src = data.t2_img;
+
+    const fallback = 'https://cdn-icons-png.flaticon.com/512/53/53283.png';
+    img1.onerror = () => { img1.src = fallback; };
+    img2.onerror = () => { img2.src = fallback; };
+
     renderSidebar();
+    calculateBets();
 };
 
 const renderSidebar = () => {
@@ -64,7 +79,7 @@ const renderSidebar = () => {
     });
 };
 
-// WALLET LOGIC
+// WALLET INTERACTION
 const connect = async () => {
     if (window.ethereum) {
         try {
@@ -84,11 +99,19 @@ const disconnect = () => {
     disconnectBtn.classList.add('hidden');
 };
 
-// EVENTS
+// INITIALIZE
 amountInput.oninput = calculateBets;
 connectBtn.onclick = () => userAccount ? disconnectBtn.classList.toggle('hidden') : connect();
 disconnectBtn.onclick = (e) => { e.stopPropagation(); disconnect(); };
-document.getElementById('bet-t1').onclick = () => alert(`Placing ${amountInput.value} GEN bet on ${matchData.find(m=>m.id===currentMatchId).t1}`);
-document.getElementById('bet-t2').onclick = () => alert(`Placing ${amountInput.value} GEN bet on ${matchData.find(m=>m.id===currentMatchId).t2}`);
 
-window.onload = () => { updateUI("m1"); calculateBets(); };
+document.getElementById('bet-t1').onclick = () => {
+    const team = matchData.find(m => m.id === currentMatchId).t1;
+    alert(`BET CONFIRMED: ${amountInput.value} GEN on ${team} at ${selectedOdds}x odds.`);
+};
+
+document.getElementById('bet-t2').onclick = () => {
+    const team = matchData.find(m => m.id === currentMatchId).t2;
+    alert(`BET CONFIRMED: ${amountInput.value} GEN on ${team} at ${selectedOdds}x odds.`);
+};
+
+window.onload = () => { updateUI("m1"); };
