@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GenBet AI | Decentralized Betting Console</title>
+    
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1423 1423%22><path d=%22M105.124 107.703h1142.109v796.875h-1142.109v-796.875z%22 fill=%22%23C0D36F%22 /><path d=%22M1120.438 90.125h-887.813c-78.646 0.133-142.367 63.853-142.5 142.488v558.528c0.133 78.647 63.853 142.367 142.488 142.5h887.826c78.646-0.133 142.367-63.853 142.5-142.488v-558.293c0-78.747-63.771-142.601-142.488-142.733z%22 fill=%22%2325274B%22 /></svg>">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style> 
@@ -13,13 +16,20 @@
         .active-match { border-color: #2563eb !important; background-color: #eff6ff !important; border-left-width: 6px !important; }
         .glass-nav { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.5); }
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .custom-logo svg { width: 100%; height: 100%; }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8 relative flex flex-col items-center">
 
     <nav class="w-full max-w-7xl flex justify-between items-center mb-12 glass-nav p-5 rounded-[2rem] sticky top-4 z-[100] shadow-sm">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black text-sm shadow-lg shadow-blue-200">G</div>
+            <div class="w-10 h-10 rounded-xl overflow-hidden shadow-sm border border-slate-100 flex items-center justify-center bg-white">
+                <svg viewBox="0 100 1423 800" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M105.124 107.703h1142.109v796.875h-1142.109v-796.875z" fill="#C0D36F" />
+                    <path d="M1069.108 336.219h157.266v353.672h-157.266zM128.562 336.219h157.266v353.672h-157.266z" fill="#FFFFFF" />
+                    <path d="M1120.438 90.125h-887.813c-78.646 0.133-142.367 63.853-142.5 142.488v558.528c0.133 78.647 63.853 142.367 142.488 142.5h887.826c78.646-0.133 142.367-63.853 142.5-142.488v-558.293c0-78.747-63.771-142.601-142.488-142.733zM651.688 626.844c-53.93-11.239-93.867-58.377-93.867-114.844s39.938-103.605 93.106-114.711l0.761 229.554zM698.563 397.156c53.93 11.239 93.867 58.377 93.867 114.844s-39.938 103.605-93.106 114.711l-0.761-229.554zM136.062 347.937h101.25v328.125h-101.25zM1120.438 887h-421.875v-212.813c79.347-12.438 139.329-80.308 139.329-162.188 0-81.879-59.982-149.75-138.403-162.068l-0.927-212.932h421.875c52.759 0.133 95.492 42.866 95.625 95.613v68.45h-95.625v243.516h93.75z" fill="#25274B" />
+                </svg>
+            </div>
             <span class="font-extrabold text-lg tracking-tighter uppercase">GenBet <span class="text-blue-600">AI</span></span>
         </div>
         <div class="flex items-center gap-4">
@@ -119,7 +129,13 @@
         <div class="bg-white/70 backdrop-blur-xl rounded-[3.5rem] p-10 border border-white shadow-2xl flex flex-col lg:flex-row gap-12 items-center">
             <div class="flex-1">
                 <div class="flex items-center gap-4 mb-6">
-                    <div class="w-12 h-12 bg-blue-600 rounded-[1.25rem] flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">!</div>
+                    <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-md overflow-hidden p-1 border border-slate-100">
+                        <svg viewBox="0 100 1423 800" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M105.124 107.703h1142.109v796.875h-1142.109v-796.875z" fill="#C0D36F" />
+                            <path d="M1069.108 336.219h157.266v353.672h-157.266zM128.562 336.219h157.266v353.672h-157.266z" fill="#FFFFFF" />
+                            <path d="M1120.438 90.125h-887.813c-78.646 0.133-142.367 63.853-142.5 142.488v558.528c0.133 78.647 63.853 142.367 142.488 142.5h887.826c78.646-0.133 142.367-63.853 142.5-142.488v-558.293c0-78.747-63.771-142.601-142.488-142.733z" fill="#25274B" />
+                        </svg>
+                    </div>
                     <h3 class="font-black text-2xl tracking-tight text-slate-900 uppercase">Protocol Mechanism</h3>
                 </div>
                 <p class="text-slate-500 text-sm md:text-base leading-relaxed font-medium mb-4">
