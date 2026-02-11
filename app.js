@@ -20,17 +20,33 @@ const matches = {
     }
 };
 
+// Wallet Connection Logic
+window.connectWallet = async () => {
+    const btn = document.getElementById('connect-btn');
+    const dot = document.getElementById('wallet-dot');
+    
+    try {
+        // Simulating GenLayer connection
+        // In the future, this will use the GenLayer Provider
+        const mockAddress = "0x71C...4f31";
+        
+        btn.innerHTML = `<div class="w-2 h-2 bg-green-500 rounded-full"></div> ${mockAddress}`;
+        btn.classList.add('border-green-200', 'bg-green-50/50');
+        console.log("Wallet connected to GenLayer");
+    } catch (err) {
+        alert("Wallet connection failed.");
+    }
+};
+
 window.changeDay = function(day) {
     const btnToday = document.getElementById('btn-today');
     const btnTomorrow = document.getElementById('btn-tomorrow');
     
-    // Toggle active styles for date buttons
     btnToday.classList.toggle('active-date', day === 'today');
     btnToday.classList.toggle('text-slate-500', day !== 'today');
     btnTomorrow.classList.toggle('active-date', day === 'tomorrow');
     btnTomorrow.classList.toggle('text-slate-500', day !== 'tomorrow');
 
-    // Update Team Info (Names and Logos) in the separate boxes
     document.getElementById('team1-name').innerText = matches[day].t1.toUpperCase();
     document.getElementById('team2-name').innerText = matches[day].t2.toUpperCase();
     document.getElementById('team1-logo').src = matches[day].t1_logo;
@@ -83,7 +99,6 @@ window.resolveMarket = async () => {
     }
 };
 
-// Initial load
 window.onload = () => {
     changeDay('today');
     refreshData();

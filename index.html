@@ -11,7 +11,14 @@
         .active-date { background-color: #2563eb !important; color: white !important; }
     </style>
 </head>
-<body class="bg-[#F8FAFC] text-[#1E293B] min-h-screen flex items-center justify-center p-4">
+<body class="bg-[#F8FAFC] text-[#1E293B] min-h-screen flex items-center justify-center p-4 relative">
+
+    <nav class="absolute top-6 right-6 z-50">
+        <button id="connect-btn" onclick="connectWallet()" class="bg-white border border-slate-200 px-6 py-2.5 rounded-2xl font-extrabold text-[11px] shadow-sm hover:shadow-md hover:border-blue-300 transition-all uppercase tracking-widest flex items-center gap-2">
+            <div class="w-2 h-2 bg-slate-300 rounded-full" id="wallet-dot"></div>
+            Connect Wallet
+        </button>
+    </nav>
 
     <div class="max-w-5xl w-full flex flex-col items-center">
         
@@ -28,7 +35,7 @@
                     <img id="team1-logo" src="https://flagcdn.com/w160/es.png" class="w-16 h-16 object-contain">
                 </div>
                 <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Home Team</span>
-                <span id="team1-name" class="text-xl font-black text-slate-800 text-center uppercase tracking-tight">REAL MADRID</span>
+                <span id="team1-name" class="text-xl font-black text-slate-800 text-center uppercase tracking-tight tracking-tight">REAL MADRID</span>
             </div>
 
             <div class="bg-white rounded-[3rem] shadow-2xl shadow-blue-200/50 p-8 border border-white z-10 relative">
