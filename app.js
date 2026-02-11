@@ -1,4 +1,3 @@
-// Database of football matches with stable links
 const matchData = [
     {
         id: "m1",
@@ -37,7 +36,6 @@ const matchData = [
 let currentMatchId = "m1";
 let userAccount = null;
 
-// UI DOM ELEMENTS
 const connectBtn = document.getElementById('connect-btn');
 const disconnectBtn = document.getElementById('disconnect-btn');
 const walletDot = document.getElementById('wallet-dot');
@@ -46,18 +44,15 @@ const updateUI = (matchId) => {
     currentMatchId = matchId;
     const data = matchData.find(m => m.id === matchId);
     
-    // Header and Names Update
     document.getElementById('match-date-display').innerText = data.date;
     document.getElementById('team1-name').innerText = data.t1;
     document.getElementById('team2-name').innerText = data.t2;
     
-    // Logos Update
     const img1 = document.getElementById('team1-logo');
     const img2 = document.getElementById('team2-logo');
     img1.src = data.t1_img;
     img2.src = data.t2_img;
 
-    // Fallback Image
     const fallback = "https://cdn-icons-png.flaticon.com/512/53/53283.png";
     img1.onerror = () => { img1.src = fallback; };
     img2.onerror = () => { img2.src = fallback; };
@@ -72,7 +67,7 @@ const renderSidebar = () => {
     matchData.forEach(match => {
         const isActive = match.id === currentMatchId;
         const card = document.createElement('div');
-        card.className = `match-card p-4 rounded-2xl flex flex-col gap-1 ${isActive ? 'active-match shadow-sm' : 'bg-white'}`;
+        card.className = `match-card p-4 rounded-2xl flex flex-col gap-1 ${isActive ? 'active-match' : 'bg-white'}`;
         
         card.innerHTML = `
             <span class="text-[9px] font-bold ${isActive ? 'text-blue-500' : 'text-slate-400'} uppercase tracking-wider">${match.date}</span>
@@ -87,7 +82,6 @@ const renderSidebar = () => {
     });
 };
 
-// WALLET CONNECTIVITY LOGIC
 const handleWalletAction = async () => {
     if (userAccount) {
         disconnectBtn.classList.toggle('hidden');
@@ -101,17 +95,11 @@ const connect = async () => {
         try {
             const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
             userAccount = accounts[0];
-            
-            // Format address: 0x1234...abcd
             connectBtn.querySelector('span').innerText = userAccount.slice(0, 6) + "..." + userAccount.slice(-4);
-            walletDot.className = "w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]";
+            walletDot.className = "w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.4)]";
             disconnectBtn.classList.add('hidden');
-        } catch (error) {
-            console.error("User rejected wallet connection");
-        }
-    } else {
-        alert("Please install MetaMask to use this AI platform.");
-    }
+        } catch (error) { console.error("Wallet connection failed"); }
+    } else { alert("Please install MetaMask"); }
 };
 
 const disconnect = () => {
@@ -121,17 +109,11 @@ const disconnect = () => {
     disconnectBtn.classList.add('hidden');
 };
 
-// INITIALIZATION & EVENTS
-document.getElementById('bet-t1').onclick = () => alert(`Sending transaction for ${matchData.find(m => m.id === currentMatchId).t1}...`);
-document.getElementById('bet-t2').onclick = () => alert(`Sending transaction for ${matchData.find(m => m.id === currentMatchId).t2}...`);
+connectBtn.onclick = handleWalletAction;
+disconnectBtn.onclick = (e) => { e.stopPropagation(); disconnect(); };
+
+document.getElementById('bet-t1').onclick = () => alert("Transaction initialized for Team 1...");
+document.getElementById('bet-t2').onclick = () => alert("Transaction initialized for Team 2...");
 document.getElementById('resolve-btn').onclick = () => alert("AI Oracle: Verification in progress via GenLayer...");
 
-connectBtn.onclick = handleWalletAction;
-disconnectBtn.onclick = (e) => {
-    e.stopPropagation();
-    disconnect();
-};
-
-window.onload = () => {
-    updateUI("m1");
-};
+window.onload = () => updateUI("m1");
