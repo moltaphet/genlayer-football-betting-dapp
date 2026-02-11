@@ -19,19 +19,19 @@ const lossDisplay = document.getElementById('calc-loss');
 const connectBtn = document.getElementById('connect-btn');
 const walletDot = document.getElementById('wallet-dot');
 
-// CALCULATION
+// CALCULATION LOGIC
 const calculateBets = () => {
     const amount = parseFloat(amountInput.value) || 0;
     const totalPayout = amount * selectedOdds;
     const netProfit = totalPayout - amount;
-    const riskAmount = netProfit;
+    const riskAmount = netProfit; 
 
     payoutDisplay.innerText = totalPayout.toFixed(2);
     netProfitDisplay.innerText = `+${netProfit.toFixed(2)} GEN`;
     lossDisplay.innerText = `-${riskAmount.toFixed(2)} GEN`;
 };
 
-// ODDS UI
+// ODDS SELECTION
 window.setOdds = (odds, btn) => {
     selectedOdds = odds;
     document.querySelectorAll('.odds-btn').forEach(b => {
@@ -41,23 +41,16 @@ window.setOdds = (odds, btn) => {
     calculateBets();
 };
 
-// UI ENGINE
+// UI UPDATE
 const updateUI = (id) => {
     currentMatchId = id;
     const data = matchData.find(m => m.id === id);
     document.getElementById('match-date-display').innerText = data.date;
     document.getElementById('team1-name').innerText = data.t1;
     document.getElementById('team2-name').innerText = data.t2;
+    document.getElementById('team1-logo').src = data.t1_img;
+    document.getElementById('team2-logo').src = data.t2_img;
     
-    const img1 = document.getElementById('team1-logo');
-    const img2 = document.getElementById('team2-logo');
-    img1.src = data.t1_img;
-    img2.src = data.t2_img;
-
-    const fallback = 'https://cdn-icons-png.flaticon.com/512/53/53283.png';
-    img1.onerror = () => { img1.src = fallback; };
-    img2.onerror = () => { img2.src = fallback; };
-
     renderSidebar();
     calculateBets();
 };
@@ -69,56 +62,44 @@ const renderSidebar = () => {
         const isActive = m.id === currentMatchId;
         const card = document.createElement('div');
         card.className = `match-card p-4 rounded-2xl flex flex-col ${isActive ? 'active-match' : 'bg-white shadow-sm'}`;
-        card.innerHTML = `
-            <span class="text-[9px] font-bold ${isActive ? 'text-blue-500' : 'text-slate-400'} uppercase">${m.date}</span>
-            <span class="text-[11px] font-black text-slate-800">${m.t1} vs ${m.t2}</span>
-        `;
+        card.innerHTML = `<span class="text-[9px] font-bold ${isActive ? 'text-blue-500' : 'text-slate-400'} uppercase">${m.date}</span><span class="text-[11px] font-black text-slate-800">${m.t1} vs ${m.t2}</span>`;
         card.onclick = () => updateUI(m.id);
         list.appendChild(card);
     });
 };
 
-// WALLET (WITH DISCONNECT LOGIC)
+// WALLET (CONNECT & DISCONNECT)
 const handleWalletAction = async () => {
-    // If already connected, clicking again will "Disconnect" (Reset)
     if (userAccount) {
         userAccount = null;
         connectBtn.querySelector('span').innerText = "Connect Wallet";
         walletDot.className = "w-2.5 h-2.5 bg-slate-300 rounded-full";
         return;
     }
-
     if (window.ethereum) {
         try {
             const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
             userAccount = accounts[0];
             connectBtn.querySelector('span').innerText = userAccount.slice(0, 6) + "..." + userAccount.slice(-4);
             walletDot.className = "w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.4)]";
-        } catch (error) {
-            console.error("Connection failed");
-        }
-    } else {
-        alert("Wallet extension not detected");
+        } catch (e) { console.error("User denied connection"); }
     }
 };
 
-// EVENTS
+// BET PLACEMENT (LOG ONLY)
+const placeBet = (side) => {
+    const amount = parseFloat(amountInput.value);
+    if (!userAccount || amount <= 0) return;
+    
+    const data = matchData.find(m => m.id === currentMatchId);
+    const teamName = side === 1 ? data.t1 : data.t2;
+    console.log(`Action: Stake ${amount} GEN on ${teamName}`);
+};
+
+// LISTENERS
 amountInput.oninput = calculateBets;
 connectBtn.onclick = handleWalletAction;
+document.getElementById('bet-t1').onclick = () => placeBet(1);
+document.getElementById('bet-t2').onclick = () => placeBet(2);
 
-document.getElementById('bet-t1').onclick = () => {
-    if(!userAccount) return alert("Please connect wallet first");
-    const team = matchData.find(m => m.id === currentMatchId).t1;
-    alert(`ACTION: Staking on ${team}`);
-};
-
-document.getElementById('bet-t2').onclick = () => {
-    if(!userAccount) return alert("Please connect wallet first");
-    const team = matchData.find(m => m.id === currentMatchId).t2;
-    alert(`ACTION: Staking on ${team}`);
-};
-
-// INIT
-window.onload = () => {
-    updateUI("m1");
-};
+window.onload = () => updateUI("m1");
