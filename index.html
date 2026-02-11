@@ -6,16 +6,24 @@
     <title>AI Sports Betting | GenLayer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-    <style> body { font-family: 'Plus Jakarta Sans', sans-serif; } </style>
+    <style> 
+        body { font-family: 'Plus Jakarta Sans', sans-serif; } 
+        .active-date { background-color: #2563eb !important; color: white !important; }
+    </style>
 </head>
 <body class="bg-[#F8FAFC] text-[#1E293B] min-h-screen flex items-center justify-center p-4">
 
     <div class="max-w-md w-full bg-white rounded-[2.5rem] shadow-xl shadow-blue-100/50 p-8 border border-white">
         
-        <div class="text-center mb-10">
+        <div class="text-center mb-6">
             <span class="bg-blue-50 text-blue-600 text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full">GenLayer Network</span>
             <h1 class="text-3xl font-extrabold mt-4 tracking-tight">Football <span class="text-blue-600">AI</span></h1>
             <p class="text-slate-400 text-sm mt-1">Decentralized Prediction Market</p>
+        </div>
+
+        <div class="flex bg-slate-100 p-1 rounded-2xl mb-6">
+            <button onclick="changeDay('today')" id="btn-today" class="active-date flex-1 py-2 text-xs font-bold rounded-xl transition-all">TODAY</button>
+            <button onclick="changeDay('tomorrow')" id="btn-tomorrow" class="flex-1 py-2 text-xs font-bold text-slate-500 rounded-xl transition-all">TOMORROW</button>
         </div>
 
         <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-[2rem] p-6 text-white mb-8 shadow-lg shadow-blue-200">
@@ -27,9 +35,17 @@
         </div>
 
         <div class="space-y-4">
+            <div class="text-center mb-2">
+                <div class="flex justify-between items-center px-4 mb-4">
+                    <span id="team1-label" class="text-lg font-black tracking-tight">TEAM 1</span>
+                    <span class="text-blue-500 font-bold text-xs italic">VS</span>
+                    <span id="team2-label" class="text-lg font-black tracking-tight">TEAM 2</span>
+                </div>
+            </div>
+
             <div class="grid grid-cols-2 gap-3">
-                <button onclick="bet(1)" class="py-4 bg-slate-50 hover:bg-white border-2 border-transparent hover:border-blue-500 rounded-2xl font-bold transition-all duration-300">Team 1</button>
-                <button onclick="bet(2)" class="py-4 bg-slate-50 hover:bg-white border-2 border-transparent hover:border-blue-500 rounded-2xl font-bold transition-all duration-300">Team 2</button>
+                <button onclick="bet(1)" class="py-4 bg-slate-50 hover:bg-white border-2 border-transparent hover:border-blue-500 rounded-2xl font-bold transition-all duration-300">Bet Team 1</button>
+                <button onclick="bet(2)" class="py-4 bg-slate-50 hover:bg-white border-2 border-transparent hover:border-blue-500 rounded-2xl font-bold transition-all duration-300">Bet Team 2</button>
             </div>
             
             <button onclick="resolveMarket()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200">
@@ -42,7 +58,7 @@
                 <div class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
                 <span id="status" class="text-[11px] font-bold text-slate-500 uppercase">Awaiting Result</span>
             </div>
-            <span id="match-score" class="text-sm font-black text-blue-600">- : -</span>
+            <span id="match-time" class="text-[11px] font-black text-blue-600 uppercase">LIVE</span>
         </div>
     </div>
 
