@@ -20,24 +20,34 @@ const matches = {
     }
 };
 
-// Wallet Connection Logic
+// --- REAL WALLET CONNECTION ---
 window.connectWallet = async () => {
     const btn = document.getElementById('connect-btn');
-    const dot = document.getElementById('wallet-dot');
     
-    try {
-        // Simulating GenLayer connection
-        // In the future, this will use the GenLayer Provider
-        const mockAddress = "0x71C...4f31";
-        
-        btn.innerHTML = `<div class="w-2 h-2 bg-green-500 rounded-full"></div> ${mockAddress}`;
-        btn.classList.add('border-green-200', 'bg-green-50/50');
-        console.log("Wallet connected to GenLayer");
-    } catch (err) {
-        alert("Wallet connection failed.");
+    if (window.ethereum) {
+        try {
+            // Requesting connection to MetaMask
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const account = accounts[0];
+            
+            // Format address (e.g., 0x1234...abcd)
+            const displayAddress = `${account.substring(0, 6)}...${account.substring(account.length - 4)}`;
+            
+            // Update UI to show connected state
+            btn.innerHTML = `<div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div> ${displayAddress}`;
+            btn.classList.add('border-green-200', 'bg-green-50/50', 'text-green-700');
+            
+            console.log("Wallet connected:", account);
+        } catch (err) {
+            console.error("User rejected the connection");
+        }
+    } else {
+        alert("Wallet not found! Please install MetaMask to use this DApp.");
+        window.open('https://metamask.io/', '_blank');
     }
 };
 
+// --- UI NAVIGATION ---
 window.changeDay = function(day) {
     const btnToday = document.getElementById('btn-today');
     const btnTomorrow = document.getElementById('btn-tomorrow');
@@ -54,6 +64,7 @@ window.changeDay = function(day) {
     document.getElementById('match-time').innerText = matches[day].time;
 };
 
+// --- BLOCKCHAIN READ ---
 async function refreshData() {
     try {
         const data = await client.readContract({
@@ -69,6 +80,7 @@ async function refreshData() {
     }
 }
 
+// --- BLOCKCHAIN WRITE (BET) ---
 window.bet = async (side) => {
     const amount = prompt("Enter GEN amount to bet:");
     if(!amount) return;
@@ -86,6 +98,7 @@ window.bet = async (side) => {
     }
 };
 
+// --- BLOCKCHAIN WRITE (AI RESOLVE) ---
 window.resolveMarket = async () => {
     alert("AI Oracle is now verifying the result from the web...");
     try {
@@ -99,6 +112,7 @@ window.resolveMarket = async () => {
     }
 };
 
+// --- INITIALIZATION ---
 window.onload = () => {
     changeDay('today');
     refreshData();
