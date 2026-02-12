@@ -28,7 +28,7 @@ const calculateBets = () => {
     const amount = parseFloat(amountInput.value) || 0;
     const totalPayout = amount * selectedOdds;
     const netProfit = totalPayout - amount;
-    const riskAmount = netProfit;
+    const riskAmount = amount;
 
     payoutDisplay.innerText = totalPayout.toFixed(2);
     netProfitDisplay.innerText = `+${netProfit.toFixed(2)} GEN`;
@@ -53,7 +53,7 @@ const connectWallet = async () => {
             userAccount = accounts[0];
             connectBtn.querySelector('span').innerText = userAccount.slice(0, 6) + "..." + userAccount.slice(-4);
             walletDot.className = "w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.4)]";
-            fetchBettingHistory(); // Refresh history on connect
+            fetchBettingHistory(); 
         } catch (error) {
             console.error("Connection failed", error);
         }
@@ -67,7 +67,6 @@ const fetchBettingHistory = async () => {
     if (!historyBody) return;
     
     try {
-        // Calling the view method get_all_bets from your Python contract
         const history = await window.ethereum.request({
             method: 'eth_call',
             params: [{
@@ -76,15 +75,12 @@ const fetchBettingHistory = async () => {
             }]
         });
 
-        // NOTE: In a real environment with genlayer-js, 'history' would be an array.
-        // For now, if history is empty/null, we show a clean placeholder or the data.
         renderHistoryTable(history || []);
     } catch (error) {
         console.error("Error fetching history:", error);
-        // Static mock data for UI preview if call fails
         renderHistoryTable([
-            { address: "0x742d...44e", team: 1, amount: "2500" },
-            { address: "0x911b...12a", team: 2, amount: "1100" }
+            { address: "0x742d...44e", team: 1, amount: "25000000000000000000" },
+            { address: "0x911b...12a", team: 2, amount: "15000000000000000000" }
         ]);
     }
 };
@@ -104,31 +100,43 @@ const renderHistoryTable = (data) => {
                 </span>
             </td>
             <td class="py-5 px-4 text-right">
-                <span class="font-black text-slate-800">${(parseInt(bet.amount) / 1e18 || bet.amount)}</span>
+                <span class="font-black text-slate-800">${(BigInt(bet.amount) / BigInt(1e18))}</span>
                 <span class="text-[9px] text-slate-400 font-bold uppercase ml-1">GEN</span>
             </td>
         </tr>
     `).join('');
 };
 
-// CONTRACT ACTION: PLACE BET
+// CONTRACT ACTION: PLACE BET (STRICT VALIDATION)
 const sendBetTransaction = async (predictedWinner) => {
     if (!userAccount) {
         alert("Please connect your wallet first!");
         return;
     }
 
-    const amountInGen = amountInput.value;
-    if (!amountInGen || amountInGen <= 0) {
-        alert("Enter a valid amount!");
-        return;
+    const amountInGen = parseFloat(amountInput.value);
+
+    
+    if (isNaN(amountInGen) || amountInGen < 10) {
+       
+        amountInput.classList.add('shake', 'border-red-500', 'bg-red-50');
+        
+        setTimeout(() => {
+            amountInput.classList.remove('shake', 'border-red-500', 'bg-red-50');
+        }, 1000);
+
+        alert("⚠️ Minimum bet allowed is 10 GEN. Please increase your stake.");
+        return; 
     }
 
     try {
+        
+        const valueInWei = (BigInt(Math.floor(amountInGen * 100)) * BigInt(10**16)).toString(16);
+
         const transactionParameters = {
             to: CONTRACT_ADDRESS,
             from: userAccount,
-            value: (parseFloat(amountInGen) * 1e18).toString(16), 
+            value: '0x' + valueInWei, 
             data: `place_bet(${predictedWinner})`
         };
 
@@ -137,8 +145,8 @@ const sendBetTransaction = async (predictedWinner) => {
             params: [transactionParameters],
         });
 
-        alert("Bet Placed! Refreshing history...");
-        setTimeout(fetchBettingHistory, 5000); // Update table after 5s
+        alert("Bet Placed Successfully! Hash: " + txHash);
+        setTimeout(fetchBettingHistory, 5000); 
     } catch (error) {
         console.error("Transaction failed", error);
     }
@@ -186,5 +194,5 @@ document.getElementById('bet-t2').onclick = () => sendBetTransaction(2);
 window.onload = () => {
     updateUI("m1");
     fetchBettingHistory();
-    setInterval(fetchBettingHistory, 15000); // Auto-refresh every 15s
+    setInterval(fetchBettingHistory, 15000); 
 };
