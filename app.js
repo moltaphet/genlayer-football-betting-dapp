@@ -37,30 +37,58 @@ window.setOdds = (odds, btn) => {
     calculateBets();
 };
 
+// WALLET CONNECTION & DISCONNECT
 const connectWallet = async () => {
     if (window.ethereum) {
         try {
             const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
             userAccount = accounts[0];
-            connectBtn.querySelector('span').innerText = userAccount.slice(0, 6) + "..." + userAccount.slice(-4);
-            walletDot.className = "w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.4)]";
-            fetchBettingHistory(); 
+            updateWalletUI(true);
         } catch (error) { console.error("Connection failed", error); }
     } else { alert("GenLayer extension not detected!"); }
 };
 
-const fetchBettingHistory = async () => {
-    if (!historyBody || !userAccount) return;
-    try {
-        const history = await window.ethereum.request({
-            method: 'eth_call',
-            params: [{ to: CONTRACT_ADDRESS, data: '0x' }] // Simple call to check connection
-        });
-        console.log("History fetched");
-    } catch (error) { console.error("History error:", error); }
+window.disconnectWallet = () => {
+    userAccount = null;
+    updateWalletUI(false);
+    console.log("Wallet Disconnected");
 };
 
-// تابع اصلی ارسال تراکنش با اصلاح باگ دیتا
+const updateWalletUI = (connected) => {
+    if (connected) {
+        connectBtn.querySelector('span').innerText = userAccount.slice(0, 6) + "..." + userAccount.slice(-4);
+        walletDot.className = "w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.4)]";
+    } else {
+        connectBtn.querySelector('span').innerText = "Connect Wallet";
+        walletDot.className = "w-2.5 h-2.5 bg-slate-300 rounded-full shadow-none";
+    }
+};
+
+// LIVE HISTORY HANDLER
+const addBetToHistory = (prediction, amount, hash) => {
+    const row = document.createElement('tr');
+    row.className = "border-b border-slate-50 hover:bg-slate-50/50 transition-all";
+    row.innerHTML = `
+        <td class="py-5 px-4">
+            <div class="flex flex-col gap-1">
+                <span class="font-mono text-[11px] text-slate-500">${userAccount.slice(0, 12)}...</span>
+                <a href="http://localhost:8080" target="_blank" class="text-[9px] text-blue-500 font-bold underline">HASH: ${hash.slice(0, 12)}...</a>
+            </div>
+        </td>
+        <td class="py-5 px-4">
+            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase ${prediction == 1 ? 'bg-blue-100 text-blue-600' : 'bg-slate-900 text-white'}">
+                Team ${prediction}
+            </span>
+        </td>
+        <td class="py-5 px-4 text-right">
+            <span class="font-black text-slate-800">${amount}</span>
+            <span class="text-[9px] text-slate-400 font-bold uppercase ml-1">GEN</span>
+        </td>
+    `;
+    historyBody.prepend(row);
+};
+
+// SEND TRANSACTION
 const sendBetTransaction = async (predictedWinner) => {
     if (!userAccount) { alert("Please connect wallet!"); return; }
 
@@ -71,36 +99,31 @@ const sendBetTransaction = async (predictedWinner) => {
     }
 
     try {
-        // محاسبه دقیق مقدار وی (Wei)
         const valueInWei = "0x" + (BigInt(Math.floor(amountInGen)) * BigInt(10**18)).toString(16);
 
         const transactionParameters = {
             to: CONTRACT_ADDRESS,
             from: userAccount,
             value: valueInWei,
-            // برای رفع ارور uint8Array، فعلا دیتا را به صورت هگزادسیمال خالی می‌فرستیم
-            // اگر قرارداد شما تابع خاصی می‌خواهد، باید انکود شود. فعلا برای تست تراکنش:
             data: '0x' 
         };
-
-        console.log("Sending Transaction...", transactionParameters);
 
         const txHash = await window.ethereum.request({
             method: 'eth_sendTransaction',
             params: [transactionParameters],
         });
 
-        alert("Bet Successful! Hash: " + txHash);
+        // اضافه کردن آنی به جدول
+        addBetToHistory(predictedWinner, amountInGen, txHash);
+        alert("Transaction Confirmed!");
+
     } catch (error) {
         console.error("TX Error:", error);
-        if (error.code === -32000 || error.message.includes("nonce")) {
-            alert("🚨 NONCE ERROR: Please go to MetaMask > Settings > Advanced > Clear Activity Tab Data");
-        } else {
-            alert("Transaction Failed. Check console.");
-        }
+        alert("Transaction Failed!");
     }
 };
 
+// UI ENGINE
 const updateUI = (id) => {
     currentMatchId = id;
     const data = matchData.find(m => m.id === id);
@@ -126,8 +149,9 @@ const renderSidebar = () => {
     });
 };
 
+// LISTENERS
 amountInput.oninput = calculateBets;
-connectBtn.onclick = connectWallet;
+connectBtn.onclick = () => { if(!userAccount) connectWallet(); };
 document.getElementById('bet-t1').onclick = () => sendBetTransaction(1);
 document.getElementById('bet-t2').onclick = () => sendBetTransaction(2);
 

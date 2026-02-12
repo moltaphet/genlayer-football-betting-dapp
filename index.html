@@ -19,7 +19,6 @@
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
 
-        /* Animation for validation error */
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-5px); }
@@ -46,10 +45,15 @@
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.987 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path></svg>
                 </a>
             </div>
-            <button id="connect-btn" class="bg-white border border-slate-200 px-6 py-3 rounded-2xl font-extrabold text-[11px] shadow-sm hover:shadow-md transition-all uppercase flex items-center gap-3">
-                <div id="wallet-dot" class="w-2.5 h-2.5 bg-slate-300 rounded-full"></div>
-                <span>Connect Wallet</span>
-            </button>
+            <div class="relative group">
+                <button id="connect-btn" class="bg-white border border-slate-200 px-6 py-3 rounded-2xl font-extrabold text-[11px] shadow-sm hover:shadow-md transition-all uppercase flex items-center gap-3">
+                    <div id="wallet-dot" class="w-2.5 h-2.5 bg-slate-300 rounded-full"></div>
+                    <span>Connect Wallet</span>
+                </button>
+                <div id="disconnect-menu" class="hidden absolute top-full right-0 mt-2 w-full bg-white border border-slate-100 shadow-xl rounded-xl p-2 z-[110] group-hover:block">
+                    <button onclick="disconnectWallet()" class="w-full text-red-500 hover:bg-red-50 px-4 py-2 rounded-lg transition-all text-[10px] font-black uppercase">Disconnect</button>
+                </div>
+            </div>
         </div>
     </nav>
 
@@ -152,43 +156,12 @@
                             <th class="pb-6 px-4 text-right">Stake Amount</th>
                         </tr>
                     </thead>
-                    <tbody id="betting-history-body" class="divide-y divide-slate-50">
-                        </tbody>
+                    <tbody id="betting-history-body" class="divide-y divide-slate-50"></tbody>
                 </table>
             </div>
         </div>
     </div>
-
-    <div class="max-w-6xl w-full mt-12 mb-24 px-4">
-        <div class="bg-white/70 backdrop-blur-xl rounded-[3.5rem] p-10 border border-white shadow-2xl flex flex-col lg:flex-row gap-12 items-center">
-            <div class="flex-1">
-                <div class="flex items-center gap-4 mb-6">
-                    <div class="w-14 h-14 flex items-center justify-center">
-                        <svg width="100%" height="100%" viewBox="0 -199.5 1423 1423" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M105.124 107.703h1142.109v796.875h-1142.109v-796.875z" fill="#C0D36F" /><path d="M1069.108 336.219h157.266v353.672h-157.266zM128.562 336.219h157.266v353.672h-157.266z" fill="#FFFFFF" /><path d="M1120.438 90.125h-887.813c-78.646 0.133-142.367 63.853-142.5 142.488v558.528c0.133 78.647 63.853 142.367 142.488 142.5h887.826c78.646-0.133 142.367-63.853 142.5-142.488v-558.293c0 0 0 0 0 0 0-78.747-63.771-142.601-142.488-142.733zM651.688 626.844c-53.93-11.239-93.867-58.377-93.867-114.844s39.938-103.605 93.106-114.711l0.761 229.554zM698.563 397.156c53.93 11.239 93.867 58.377 93.867 114.844s-39.938 103.605-93.106 114.711l-0.761-229.554zM136.062 347.937h101.25c0 0 0 0 0 0 23.429 0 42.421 18.992 42.421 42.421v243.516c0 0 0 0 0 0 0 23.429-18.992 42.421-42.421 42.421 0 0 0 0 0 0h-101.25v-328.125zM136.062 791.375v-68.438h101.25c49.317 0 89.297-39.98 89.297-89.297v-242.578c0-49.317-39.98-89.297-89.297-89.297 0 0 0 0 0 0h-101.25v-68.438c0.133-52.759 42.867-95.492 95.613-95.625h420.011v212.813c-79.347 12.438-139.329 80.308-139.329 162.188 0 81.879 59.982 149.75 138.403 162.068l0.927 212.932h-419.063c-0.209 0.002-0.457 0.003-0.705 0.003-52.942 0-95.859-42.918-95.859-95.859 0-0.165 0.001-0.331 0.002-0.497zM1120.438 887h-421.875v-212.813c79.347-12.438 139.329-80.308 139.329-162.188 0-81.879-59.982-149.75-138.403-162.068l-0.927-212.932h421.875c52.759 0.133 95.492 42.866 95.625 95.613v68.45h-95.625c0 0 0 0 0 0-49.317 0-89.297 39.98-89.297 89.297v243.516c0 49.317 39.979 89.297 89.297 89.297 0 0 0 0 0 0h93.75v68.438c-0.249 52.012-41.883 94.217-93.648 95.39zM1216.063 347.937v328.125h-95.625c0 0 0 0 0 0-23.429 0-42.421-18.992-42.421-42.421 0 0 0 0 0 0v-242.578c0 0 0 0 0 0 0-23.429 18.992-42.421 42.421-42.421 0 0 0 0 0 0h93.75z" fill="#25274B" /></svg>
-                    </div>
-                    <h3 class="font-black text-2xl tracking-tight text-slate-900 uppercase">Protocol Mechanism</h3>
-                </div>
-                <p class="text-slate-500 text-sm md:text-base leading-relaxed font-medium mb-4">
-                    Experience the <span class="text-blue-600 font-extrabold underline decoration-blue-100 decoration-4">First AI-Driven Sports Market</span> on GenLayer. 
-                    Our platform uses decentralized intelligence to verify sports data in real-time.
-                </p>
-                <p class="text-slate-400 text-xs md:text-sm leading-relaxed">
-                    By leveraging <span class="text-slate-800 font-bold">AI Oracles</span> and Intelligent Magic Protocol, we eliminate centralized bookies. Every outcome is verified autonomously, ensuring transparency and instant settlement.
-                </p>
-            </div>
-            <div class="grid grid-cols-2 gap-6 w-full lg:w-auto shrink-0">
-                <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 text-center shadow-sm">
-                    <span class="block text-3xl mb-3">🤖</span>
-                    <span class="text-[10px] font-black uppercase tracking-widest text-blue-600">AI Logic</span>
-                </div>
-                <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 text-center shadow-sm">
-                    <span class="block text-3xl mb-3">⚡</span>
-                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-800">No Trust</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    
     <script src="app.js"></script>
 </body>
 </html>
