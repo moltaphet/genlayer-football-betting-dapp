@@ -1,5 +1,5 @@
-// CONFIGURATION
-const CONTRACT_ADDRESS = "0xCe751D8399639157268a55F12e6f2aB081d49c72";
+
+const CONTRACT_ADDRESS = "0x4d8Cd6Caa7D7681AeF2E3B6e21FFB3238eCb4814";
 
 // DATABASE WITH STABLE SVG LOGOS
 const matchData = [
@@ -45,7 +45,7 @@ window.setOdds = (odds, btn) => {
     calculateBets();
 };
 
-// WALLET CONNECTION (GENLAYER)
+// WALLET CONNECTION
 const connectWallet = async () => {
     if (window.ethereum) {
         try {
@@ -65,7 +65,6 @@ const connectWallet = async () => {
 // FETCH HISTORY FROM CONTRACT
 const fetchBettingHistory = async () => {
     if (!historyBody) return;
-    
     try {
         const history = await window.ethereum.request({
             method: 'eth_call',
@@ -74,18 +73,14 @@ const fetchBettingHistory = async () => {
                 data: 'get_all_bets()' 
             }]
         });
-
         renderHistoryTable(history || []);
     } catch (error) {
         console.error("Error fetching history:", error);
-        renderHistoryTable([
-            { address: "0x742d...44e", team: 1, amount: "25000000000000000000" },
-            { address: "0x911b...12a", team: 2, amount: "15000000000000000000" }
-        ]);
     }
 };
 
 const renderHistoryTable = (data) => {
+    if (!Array.isArray(data)) return;
     historyBody.innerHTML = data.map(bet => `
         <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-all">
             <td class="py-5 px-4">
@@ -107,7 +102,7 @@ const renderHistoryTable = (data) => {
     `).join('');
 };
 
-// CONTRACT ACTION: PLACE BET (STRICT VALIDATION)
+// CONTRACT ACTION: PLACE BET (FIXED CALCULATION)
 const sendBetTransaction = async (predictedWinner) => {
     if (!userAccount) {
         alert("Please connect your wallet first!");
@@ -115,23 +110,19 @@ const sendBetTransaction = async (predictedWinner) => {
     }
 
     const amountInGen = parseFloat(amountInput.value);
-
     
     if (isNaN(amountInGen) || amountInGen < 10) {
-       
         amountInput.classList.add('shake', 'border-red-500', 'bg-red-50');
-        
-        setTimeout(() => {
-            amountInput.classList.remove('shake', 'border-red-500', 'bg-red-50');
-        }, 1000);
-
-        alert("⚠️ Minimum bet allowed is 10 GEN. Please increase your stake.");
+        setTimeout(() => amountInput.classList.remove('shake', 'border-red-500', 'bg-red-50'), 1000);
+        alert("⚠️ Minimum bet allowed is 10 GEN.");
         return; 
     }
 
     try {
-        
-        const valueInWei = (BigInt(Math.floor(amountInGen * 100)) * BigInt(10**16)).toString(16);
+        // فیکس کردن باگ عدد 15: تبدیل دقیق به Wei با دقت 18 رقم اعشار
+        const factor = BigInt(10**18);
+        const amountBigInt = BigInt(Math.floor(amountInGen));
+        const valueInWei = (amountBigInt * factor).toString(16);
 
         const transactionParameters = {
             to: CONTRACT_ADDRESS,
@@ -146,9 +137,10 @@ const sendBetTransaction = async (predictedWinner) => {
         });
 
         alert("Bet Placed Successfully! Hash: " + txHash);
-        setTimeout(fetchBettingHistory, 5000); 
+        setTimeout(fetchBettingHistory, 3000); 
     } catch (error) {
         console.error("Transaction failed", error);
+        alert("Transaction Failed! Check console for details.");
     }
 };
 
@@ -159,12 +151,8 @@ const updateUI = (id) => {
     document.getElementById('match-date-display').innerText = data.date;
     document.getElementById('team1-name').innerText = data.t1;
     document.getElementById('team2-name').innerText = data.t2;
-    
-    const img1 = document.getElementById('team1-logo');
-    const img2 = document.getElementById('team2-logo');
-    img1.src = data.t1_img;
-    img2.src = data.t2_img;
-
+    document.getElementById('team1-logo').src = data.t1_img;
+    document.getElementById('team2-logo').src = data.t2_img;
     renderSidebar();
     calculateBets();
 };
@@ -175,7 +163,7 @@ const renderSidebar = () => {
     matchData.forEach(m => {
         const isActive = m.id === currentMatchId;
         const card = document.createElement('div');
-        card.className = `match-card p-4 rounded-2xl flex flex-col ${isActive ? 'active-match' : 'bg-white shadow-sm'}`;
+        card.className = `match-card p-4 rounded-2xl flex flex-col cursor-pointer ${isActive ? 'active-match' : 'bg-white shadow-sm'}`;
         card.innerHTML = `
             <span class="text-[9px] font-bold ${isActive ? 'text-blue-500' : 'text-slate-400'} uppercase">${m.date}</span>
             <span class="text-[11px] font-black text-slate-800">${m.t1} vs ${m.t2}</span>
@@ -193,6 +181,4 @@ document.getElementById('bet-t2').onclick = () => sendBetTransaction(2);
 
 window.onload = () => {
     updateUI("m1");
-    fetchBettingHistory();
-    setInterval(fetchBettingHistory, 15000); 
 };
