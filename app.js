@@ -25,9 +25,20 @@ const historyBody = document.getElementById('betting-history-body');
 
 const calculateBets = () => {
     const amount = parseFloat(amountInput.value) || 0;
-    payoutDisplay.innerText = (amount * selectedOdds).toFixed(2);
-    netProfitDisplay.innerText = `+${(amount * selectedOdds - amount).toFixed(2)} GEN`;
+    
+    
+    const totalPayout = amount * selectedOdds;
+    payoutDisplay.innerText = totalPayout.toFixed(2);
+    
+    
+    const netProfit = totalPayout - amount;
+    netProfitDisplay.innerText = `+${netProfit.toFixed(2)} GEN`;
+    
     lossDisplay.innerText = `-${amount.toFixed(2)} GEN`;
+
+  
+    payoutDisplay.style.transform = "scale(1.05)";
+    setTimeout(() => payoutDisplay.style.transform = "scale(1)", 100);
 };
 
 window.setOdds = (odds, btn) => {
@@ -51,7 +62,6 @@ const connectWallet = async () => {
 window.disconnectWallet = () => {
     userAccount = null;
     updateWalletUI(false);
-    console.log("Wallet Disconnected");
 };
 
 const updateWalletUI = (connected) => {
@@ -72,7 +82,7 @@ const addBetToHistory = (prediction, amount, hash) => {
         <td class="py-5 px-4">
             <div class="flex flex-col gap-1">
                 <span class="font-mono text-[11px] text-slate-500">${userAccount.slice(0, 12)}...</span>
-                <a href="http://localhost:8080" target="_blank" class="text-[9px] text-blue-500 font-bold underline">HASH: ${hash.slice(0, 12)}...</a>
+                <a href="http://localhost:8080" target="_blank" class="text-[9px] text-blue-500 font-bold underline italic">HASH: ${hash.slice(0, 10)}...</a>
             </div>
         </td>
         <td class="py-5 px-4">
@@ -113,7 +123,6 @@ const sendBetTransaction = async (predictedWinner) => {
             params: [transactionParameters],
         });
 
-        // اضافه کردن آنی به جدول
         addBetToHistory(predictedWinner, amountInGen, txHash);
         alert("Transaction Confirmed!");
 
@@ -142,7 +151,7 @@ const renderSidebar = () => {
     matchData.forEach(m => {
         const isActive = m.id === currentMatchId;
         const card = document.createElement('div');
-        card.className = `match-card p-4 rounded-2xl flex flex-col cursor-pointer ${isActive ? 'active-match' : 'bg-white shadow-sm'}`;
+        card.className = `match-card p-4 rounded-2xl flex flex-col cursor-pointer ${isActive ? 'active-match shadow-sm' : 'bg-white hover:bg-slate-50 border border-slate-100'}`;
         card.innerHTML = `<span class="text-[9px] font-bold ${isActive ? 'text-blue-500' : 'text-slate-400'} uppercase">${m.date}</span><span class="text-[11px] font-black text-slate-800">${m.t1} vs ${m.t2}</span>`;
         card.onclick = () => updateUI(m.id);
         list.appendChild(card);
