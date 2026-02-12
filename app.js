@@ -24,22 +24,21 @@ const walletDot = document.getElementById('wallet-dot');
 const historyBody = document.getElementById('betting-history-body');
 
 const calculateBets = () => {
+    const amount = parseFloat(amountInput.value) || 0;
     
-    const currentAmount = parseFloat(document.getElementById('bet-amount').value) || 0;
-    
-    
-    const totalPayout = currentAmount * selectedOdds;
-    payoutDisplay.innerText = totalPayout.toFixed(2);
-    
-   
-    const netProfit = totalPayout - currentAmount;
+    const netProfit = amount * (selectedOdds - 1);
     netProfitDisplay.innerText = `+${netProfit.toFixed(2)} GEN`;
     
-    lossDisplay.innerText = `-${currentAmount.toFixed(2)} GEN`;
-
+    const riskOnLoss = netProfit; 
+    lossDisplay.innerText = `-${riskOnLoss.toFixed(2)} GEN`;
     
-    lossDisplay.classList.add('transition-all', 'duration-100', 'scale-110');
-    setTimeout(() => lossDisplay.classList.remove('scale-110'), 100);
+    const totalPayout = amount + netProfit;
+    payoutDisplay.innerText = totalPayout.toFixed(2);
+
+    [netProfitDisplay, lossDisplay].forEach(el => {
+        el.style.transform = "scale(1.1)";
+        setTimeout(() => el.style.transform = "scale(1)", 100);
+    });
 };
 
 window.setOdds = (odds, btn) => {
