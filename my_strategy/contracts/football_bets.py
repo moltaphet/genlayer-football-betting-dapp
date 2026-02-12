@@ -74,23 +74,17 @@ class PredictionMarket(gl.Contract):
             self.has_resolved = True
             self.winner = u256(result_json["winner"])
             self.score = result_json["score"]
-          
             self._distribute_prizes()
             
         return result_json
 
     def _distribute_prizes(self):
-        """
-        Calculates and transfers the rewards to the winners.
-        """
         winning_team = self.winner
-      
         winning_pool = self.pool_team1 if winning_team == u256(1) else self.pool_team2
         
         if winning_pool > u256(0):
             for addr, info in self.bets.items():
                 if info.team == winning_team:
-                  
                     reward = (info.amount * self.total_pool) // winning_pool
                     gl.transfer(addr, reward)
 
@@ -104,3 +98,15 @@ class PredictionMarket(gl.Contract):
             "pool_t1": str(self.pool_team1),
             "pool_t2": str(self.pool_team2)
         }
+
+    
+    @gl.public.view
+    def get_all_bets(self) -> list:
+        all_bets = []
+        for addr, info in self.bets.items():
+            all_bets.append({
+                "address": addr.as_hex,
+                "team": int(info.team),
+                "amount": str(info.amount)
+            })
+        return all_bets
