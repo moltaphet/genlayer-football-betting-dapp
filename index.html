@@ -18,6 +18,14 @@
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+
+        /* Animation for validation error */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .shake { animation: shake 0.2s cubic-bezier(.36,.07,.19,.97) both; transform: translate3d(0, 0, 0); }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8 relative flex flex-col items-center">
@@ -82,8 +90,11 @@
 
                     <div class="space-y-4">
                         <div>
-                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 mb-2 block">Stake Amount</label>
-                            <input type="number" id="bet-amount" value="100" class="w-full bg-slate-50 border border-slate-100 py-4 px-6 rounded-2xl text-lg font-black text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-center">
+                            <div class="flex justify-between items-center mb-2 px-4">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Stake Amount</label>
+                                <span class="text-[9px] font-black text-blue-500 bg-blue-50 px-2 py-0.5 rounded-lg">MIN 10 GEN</span>
+                            </div>
+                            <input type="number" id="bet-amount" value="10" min="10" class="w-full bg-slate-50 border border-slate-100 py-4 px-6 rounded-2xl text-lg font-black text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-center transition-all">
                         </div>
 
                         <div class="grid grid-cols-5 gap-1.5">
@@ -106,8 +117,8 @@
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
-                            <button id="bet-t1" class="py-4 bg-blue-600 text-white rounded-[1.5rem] text-[10px] font-black uppercase hover:bg-blue-700 shadow-lg shadow-blue-100">Bet Team 1</button>
-                            <button id="bet-t2" class="py-4 bg-slate-900 text-white rounded-[1.5rem] text-[10px] font-black uppercase hover:bg-slate-800 shadow-lg">Bet Team 2</button>
+                            <button id="bet-t1" class="py-4 bg-blue-600 text-white rounded-[1.5rem] text-[10px] font-black uppercase hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all active:scale-95">Bet Team 1</button>
+                            <button id="bet-t2" class="py-4 bg-slate-900 text-white rounded-[1.5rem] text-[10px] font-black uppercase hover:bg-slate-800 shadow-lg transition-all active:scale-95">Bet Team 2</button>
                         </div>
                     </div>
                 </div>

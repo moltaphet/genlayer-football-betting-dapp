@@ -38,12 +38,20 @@ class PredictionMarket(gl.Contract):
 
     @gl.public.write
     def place_bet(self, predicted_winner: int):
+        # جلوگیری از شرط‌بندی بعد از اتمام بازی
         assert not self.has_resolved, "Game already resolved"
+        
+        # تعریف حداقل شرط: ۱۰ واحد GEN (با احتساب ۱۸ صفر)
+        MIN_BET = u256(10 * 10**18)
+        
+        # دریافت مقدار ارسالی توسط کاربر
+        amount = gl.message.value
+        
+        # بررسی محدودیت حداقل ۱۰ واحد
+        assert amount >= MIN_BET, "Minimum bet amount is 10 GEN"
+        
         team_id = u256(predicted_winner)
         assert team_id == u256(1) or team_id == u256(2), "Invalid team: Choose 1 or 2"
-        
-        amount = gl.message.value
-        assert amount > 0, "Must send some value to bet"
         
         sender = gl.message.sender_address
         self.bets[sender] = BetInfo(team=team_id, amount=amount)
@@ -99,7 +107,6 @@ class PredictionMarket(gl.Contract):
             "pool_t2": str(self.pool_team2)
         }
 
-    
     @gl.public.view
     def get_all_bets(self) -> list:
         all_bets = []
