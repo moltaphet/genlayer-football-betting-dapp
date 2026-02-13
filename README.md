@@ -1,4 +1,3 @@
-Markdown
 # ⚽ GenBet AI: Intelligent Football Prediction Market
 **Built for the GenLayer Ecosystem**
 
@@ -15,7 +14,7 @@ Unlike traditional platforms, GenBet implements a **Symmetric Risk Engine**. Thi
 * **Net Profit:** $Stake \times (Odds - 1)$
 * **Risk:** $Net Profit$ (Automatically balanced by the contract)
 
-**JavaScript implementation:**
+**JavaScript Implementation:**
 ```javascript
 const netProfit = amount * (selectedOdds - 1);
 lossDisplay.innerText = `-${netProfit.toFixed(2)} GEN`; // Dynamic Risk Calculation
@@ -25,13 +24,10 @@ We use GenLayer's unique AI Web Rendering capabilities. The contract doesn't jus
 Source: BBC Sport / Real-time API
 
 Validation: AI-powered nodes (e.g., Mistral) achieve consensus on the final score.
-
 🛠 Prerequisites & Setup
 GenBet requires Docker and the GenLayer CLI to run its local node and validator infrastructure.
 
 Start Local Node:
-
-Bash
 pip install py-genlayer
 genlayer up
 AI Validator: Ensure an AI validator (Mistral/OpenAI) is active in your local node dashboard with a valid API key.
