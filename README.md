@@ -1,5 +1,3 @@
-```markdown
-
 # ⚽ GenBet AI: Intelligent Football Prediction Market
 **Built for the GenLayer Ecosystem**
 
@@ -17,6 +15,7 @@ Unlike traditional platforms, GenBet implements a **Symmetric Risk Engine**. Thi
 * **Risk:** $Net Profit$ (Automatically balanced by the contract)
 
 **JavaScript Implementation:**
+
 ```javascript
 const netProfit = amount * (selectedOdds - 1);
 lossDisplay.innerText = `-${netProfit.toFixed(2)} GEN`; // Dynamic Risk Calculation
