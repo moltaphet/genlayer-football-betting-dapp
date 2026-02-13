@@ -1,55 +1,64 @@
-# genlayer-football-betting-dapp
-# ⚽ GenLayer Football Betting DApp
+Markdown
+# ⚽ GenBet AI: Intelligent Football Prediction Market
+**Built for the GenLayer Ecosystem**
 
-A decentralized football prediction market built on the **GenLayer** network. This project leverages **Intelligent Contracts** to automatically resolve match outcomes by analyzing real-time data from BBC Sport using AI-powered validators.
-
----
-
-## 🛠 Prerequisites & Setup
-
-To get this project running locally, follow these steps in order:
-
-### 1. Environment Setup (Docker)
-GenLayer requires Docker to run its local node and validator infrastructure.
-* **Install Docker Desktop**: Ensure it is running on your system.
-* **Install GenLayer CLI**: Run the following in your terminal:
-    `pip install py-genlayer`
-* **Start Local Node**: Navigate to the project root and run:
-    `genlayer up`
-
-### 2. AI Validator Configuration
-The match resolution depends on an active AI validator to achieve consensus.
-* Go to your local node management dashboard.
-* Ensure a validator (e.g., **Mistral**) is active with a valid API key to finalize transactions.
+GenBet AI is a decentralized prediction market that leverages **GenLayer's Intelligent Contracts** and AI-powered validators to automate match resolutions using real-time data from sources like BBC Sport.
 
 ---
 
-## 🚀 Deployment & Usage
+## 🎓 Technical Deep Dive (Educational Guide)
 
-### 1. Using GenLayer Studio
-The [GenLayer Studio](http://localhost:8080) provides a visual interface for testing.
-* Load `football_bets.py` from the `contracts/` directory into the Studio.
-* Fill the **Constructor Inputs** with match details:
-    * `game_date`: Format `YYYY-MM-DD` (e.g., 2024-05-19).
-    * `team1`: First team name.
-    * `team2`: Second team name.
-* Click **Deploy** to generate your unique Contract Address.
+### 1. The Symmetric Risk-Reward Logic
+Unlike traditional platforms, GenBet implements a **Symmetric Risk Engine**. This ensures a fair 1:1 ratio between the user's potential net profit and their risk, calculated dynamically based on AI-provided odds.
 
-### 2. Smart Contract Methods
-* **`place_bet(selection)`**: Allows users to send tokens and choose a winner (1, 2, or 0 for Draw).
-* **`resolve()`**: Triggers the `gl.nondet.web.render` logic to scrape BBC Sport and uses AI to determine the final result.
+**The Math:**
+* **Net Profit:** $Stake \times (Odds - 1)$
+* **Risk:** $Net Profit$ (Automatically balanced by the contract)
 
----
+**JavaScript implementation:**
+```javascript
+const netProfit = amount * (selectedOdds - 1);
+lossDisplay.innerText = `-${netProfit.toFixed(2)} GEN`; // Dynamic Risk Calculation
+2. Intelligent Oracle Integration
+We use GenLayer's unique AI Web Rendering capabilities. The contract doesn't just fetch data; it "reads" the sports page to determine the winner.
 
-## 📂 Project Structure
-* `contracts/`: Contains Python-based Intelligent Contracts.
-* `frontend/`: (In Development) Web interface to interact with the blockchain.
-* `tests/`: Automated scripts to verify contract logic.
+Source: BBC Sport / Real-time API
 
----
+Validation: AI-powered nodes (e.g., Mistral) achieve consensus on the final score.
 
-## 🔗 Git Integration
-To push your latest changes to GitHub:
-1. `git add .`
-2. `git commit -m "Complete documentation and core logic"`
-3. `git push origin main`
+🛠 Prerequisites & Setup
+GenBet requires Docker and the GenLayer CLI to run its local node and validator infrastructure.
+
+Start Local Node:
+
+Bash
+pip install py-genlayer
+genlayer up
+AI Validator: Ensure an AI validator (Mistral/OpenAI) is active in your local node dashboard with a valid API key.
+
+🚀 Deployment & Smart Contract
+1. Using GenLayer Studio
+Load contracts/football_bets.py into the GenLayer Studio.
+
+Constructor Inputs: * game_date: YYYY-MM-DD
+
+team1 / team2: Names of the competing clubs.
+
+Click Deploy to generate the Contract Address.
+
+2. Contract Methods
+place_bet(selection): Submit your prediction (1, 2, or 0).
+
+resolve(): Triggers the gl.nondet.web.render logic to scrape results and process payouts.
+
+📂 Project Structure
+contracts/: Python-based Intelligent Contracts for GenLayer.
+
+frontend/: Responsive UI built with Tailwind CSS and GenLayer-JS.
+
+tests/: Automated scripts for verifying bet logic.
+
+🔗 Submission Evidence
+Live Demo: genlayer-football-betting-dapp.vercel.app
+
+Project Goal: To demonstrate how AI Oracles can eliminate human error in decentralized betting.
