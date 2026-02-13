@@ -1,4 +1,5 @@
 ```markdown
+
 # ⚽ GenBet AI: Intelligent Football Prediction Market
 **Built for the GenLayer Ecosystem**
 
