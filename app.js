@@ -48,24 +48,30 @@ window.setOdds = (odds, btn) => {
     calculateBets();
 };
 
-// WALLET CONNECTION & DISCONNECT
+// WALLET CONNECTION & DISCONNECT (REFINED)
 const connectWallet = async () => {
     if (window.ethereum) {
         try {
             const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
             userAccount = accounts[0];
             updateWalletUI(true);
-        } catch (error) { console.error("Connection failed", error); }
-    } else { alert("GenLayer extension not detected!"); }
+        } catch (error) { 
+            console.error("Connection failed", error); 
+        }
+    } else { 
+        alert("GenLayer extension not detected!"); 
+    }
 };
 
 window.disconnectWallet = () => {
     userAccount = null;
     updateWalletUI(false);
+    
+    console.log("Wallet disconnected");
 };
 
 const updateWalletUI = (connected) => {
-    if (connected) {
+    if (connected && userAccount) {
         connectBtn.querySelector('span').innerText = userAccount.slice(0, 6) + "..." + userAccount.slice(-4);
         walletDot.className = "w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.4)]";
     } else {
@@ -81,7 +87,7 @@ const addBetToHistory = (prediction, amount, hash) => {
     row.innerHTML = `
         <td class="py-5 px-4">
             <div class="flex flex-col gap-1">
-                <span class="font-mono text-[11px] text-slate-500">${userAccount.slice(0, 12)}...</span>
+                <span class="font-mono text-[11px] text-slate-500">${userAccount ? userAccount.slice(0, 12) : "Unknown"}...</span>
                 <a href="http://localhost:8080" target="_blank" class="text-[9px] text-blue-500 font-bold underline italic">HASH: ${hash.slice(0, 10)}...</a>
             </div>
         </td>
@@ -147,6 +153,7 @@ const updateUI = (id) => {
 
 const renderSidebar = () => {
     const list = document.getElementById('side-match-list');
+    if (!list) return;
     list.innerHTML = '';
     matchData.forEach(m => {
         const isActive = m.id === currentMatchId;
@@ -158,9 +165,17 @@ const renderSidebar = () => {
     });
 };
 
-// LISTENERS
+// LISTENERS (FIXED TOGGLE)
 amountInput.oninput = calculateBets;
-connectBtn.onclick = () => { if(!userAccount) connectWallet(); };
+
+connectBtn.onclick = () => { 
+    if (!userAccount) {
+        connectWallet(); 
+    } else {
+        window.disconnectWallet();
+    }
+};
+
 document.getElementById('bet-t1').onclick = () => sendBetTransaction(1);
 document.getElementById('bet-t2').onclick = () => sendBetTransaction(2);
 
