@@ -22,16 +22,15 @@ const lossDisplay = document.getElementById('calc-loss');
 const connectBtn = document.getElementById('connect-btn');
 const walletDot = document.getElementById('wallet-dot');
 const historyBody = document.getElementById('betting-history-body');
+const disconnectMenu = document.getElementById('disconnect-menu');
+const disconnectBtnActual = document.getElementById('disconnect-btn-actual');
 
 const calculateBets = () => {
     const amount = parseFloat(amountInput.value) || 0;
-    
     const netProfit = amount * (selectedOdds - 1);
     netProfitDisplay.innerText = `+${netProfit.toFixed(2)} GEN`;
-    
     const riskOnLoss = netProfit; 
     lossDisplay.innerText = `-${riskOnLoss.toFixed(2)} GEN`;
-    
     const totalPayout = amount + netProfit;
     payoutDisplay.innerText = totalPayout.toFixed(2);
 
@@ -48,7 +47,6 @@ window.setOdds = (odds, btn) => {
     calculateBets();
 };
 
-// WALLET CONNECTION & DISCONNECT (REFINED)
 const connectWallet = async () => {
     if (window.ethereum) {
         try {
@@ -66,7 +64,6 @@ const connectWallet = async () => {
 window.disconnectWallet = () => {
     userAccount = null;
     updateWalletUI(false);
-    
     console.log("Wallet disconnected");
 };
 
@@ -74,13 +71,18 @@ const updateWalletUI = (connected) => {
     if (connected && userAccount) {
         connectBtn.querySelector('span').innerText = userAccount.slice(0, 6) + "..." + userAccount.slice(-4);
         walletDot.className = "w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.4)]";
+        
+        // Setup Hover Menu
+        connectBtn.onmouseenter = () => disconnectMenu.classList.remove('hidden');
+        document.querySelector('.relative.group').onmouseleave = () => disconnectMenu.classList.add('hidden');
     } else {
         connectBtn.querySelector('span').innerText = "Connect Wallet";
         walletDot.className = "w-2.5 h-2.5 bg-slate-300 rounded-full shadow-none";
+        disconnectMenu.classList.add('hidden');
+        connectBtn.onmouseenter = null;
     }
 };
 
-// LIVE HISTORY HANDLER
 const addBetToHistory = (prediction, amount, hash) => {
     const row = document.createElement('tr');
     row.className = "border-b border-slate-50 hover:bg-slate-50/50 transition-all";
@@ -104,10 +106,8 @@ const addBetToHistory = (prediction, amount, hash) => {
     historyBody.prepend(row);
 };
 
-// SEND TRANSACTION
 const sendBetTransaction = async (predictedWinner) => {
     if (!userAccount) { alert("Please connect wallet!"); return; }
-
     const amountInGen = parseFloat(amountInput.value);
     if (isNaN(amountInGen) || amountInGen < 10) {
         alert("Minimum bet: 10 GEN");
@@ -116,29 +116,24 @@ const sendBetTransaction = async (predictedWinner) => {
 
     try {
         const valueInWei = "0x" + (BigInt(Math.floor(amountInGen)) * BigInt(10**18)).toString(16);
-
         const transactionParameters = {
             to: CONTRACT_ADDRESS,
             from: userAccount,
             value: valueInWei,
             data: '0x' 
         };
-
         const txHash = await window.ethereum.request({
             method: 'eth_sendTransaction',
             params: [transactionParameters],
         });
-
         addBetToHistory(predictedWinner, amountInGen, txHash);
         alert("Transaction Confirmed!");
-
     } catch (error) {
         console.error("TX Error:", error);
         alert("Transaction Failed!");
     }
 };
 
-// UI ENGINE
 const updateUI = (id) => {
     currentMatchId = id;
     const data = matchData.find(m => m.id === id);
@@ -165,17 +160,10 @@ const renderSidebar = () => {
     });
 };
 
-// LISTENERS (FIXED TOGGLE)
+// LISTENERS
 amountInput.oninput = calculateBets;
-
-connectBtn.onclick = () => { 
-    if (!userAccount) {
-        connectWallet(); 
-    } else {
-        window.disconnectWallet();
-    }
-};
-
+connectBtn.onclick = () => { if (!userAccount) connectWallet(); };
+disconnectBtnActual.onclick = window.disconnectWallet;
 document.getElementById('bet-t1').onclick = () => sendBetTransaction(1);
 document.getElementById('bet-t2').onclick = () => sendBetTransaction(2);
 
