@@ -23,7 +23,7 @@ const connectBtn = document.getElementById('connect-btn');
 const walletDot = document.getElementById('wallet-dot');
 const historyBody = document.getElementById('betting-history-body');
 const disconnectMenu = document.getElementById('disconnect-menu');
-const disconnectBtnActual = document.getElementById('disconnect-btn-actual');
+const walletWrapper = document.getElementById('wallet-wrapper');
 
 const calculateBets = () => {
     const amount = parseFloat(amountInput.value) || 0;
@@ -33,11 +33,6 @@ const calculateBets = () => {
     lossDisplay.innerText = `-${riskOnLoss.toFixed(2)} GEN`;
     const totalPayout = amount + netProfit;
     payoutDisplay.innerText = totalPayout.toFixed(2);
-
-    [netProfitDisplay, lossDisplay].forEach(el => {
-        el.style.transform = "scale(1.1)";
-        setTimeout(() => el.style.transform = "scale(1)", 100);
-    });
 };
 
 window.setOdds = (odds, btn) => {
@@ -47,93 +42,63 @@ window.setOdds = (odds, btn) => {
     calculateBets();
 };
 
-const connectWallet = async () => {
-    if (window.ethereum) {
-        try {
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            userAccount = accounts[0];
-            updateWalletUI(true);
-        } catch (error) { 
-            console.error("Connection failed", error); 
-        }
-    } else { 
-        alert("GenLayer extension not detected!"); 
-    }
-};
-
-window.disconnectWallet = () => {
-    userAccount = null;
-    updateWalletUI(false);
-    console.log("Wallet disconnected");
-};
-
+// WALLET HANDLERS
 const updateWalletUI = (connected) => {
     if (connected && userAccount) {
         connectBtn.querySelector('span').innerText = userAccount.slice(0, 6) + "..." + userAccount.slice(-4);
         walletDot.className = "w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.4)]";
         
         // Setup Hover Menu
-        connectBtn.onmouseenter = () => disconnectMenu.classList.remove('hidden');
-        document.querySelector('.relative.group').onmouseleave = () => disconnectMenu.classList.add('hidden');
+        walletWrapper.onmouseenter = () => disconnectMenu.style.display = 'block';
+        walletWrapper.onmouseleave = () => disconnectMenu.style.display = 'none';
     } else {
         connectBtn.querySelector('span').innerText = "Connect Wallet";
         walletDot.className = "w-2.5 h-2.5 bg-slate-300 rounded-full shadow-none";
-        disconnectMenu.classList.add('hidden');
-        connectBtn.onmouseenter = null;
+        disconnectMenu.style.display = 'none';
+        walletWrapper.onmouseenter = null;
     }
 };
 
+const connectWallet = async () => {
+    if (window.ethereum) {
+        try {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            userAccount = accounts[0];
+            updateWalletUI(true);
+        } catch (error) { console.error("Connection failed", error); }
+    } else { alert("GenLayer extension not detected!"); }
+};
+
+window.disconnectWallet = () => {
+    userAccount = null;
+    updateWalletUI(false);
+    disconnectMenu.style.display = 'none'; // Instant vanish
+};
+
+// HISTORY HANDLER
 const addBetToHistory = (prediction, amount, hash) => {
     const row = document.createElement('tr');
     row.className = "border-b border-slate-50 hover:bg-slate-50/50 transition-all";
     row.innerHTML = `
-        <td class="py-5 px-4">
-            <div class="flex flex-col gap-1">
-                <span class="font-mono text-[11px] text-slate-500">${userAccount ? userAccount.slice(0, 12) : "Unknown"}...</span>
-                <a href="http://localhost:8080" target="_blank" class="text-[9px] text-blue-500 font-bold underline italic">HASH: ${hash.slice(0, 10)}...</a>
-            </div>
-        </td>
-        <td class="py-5 px-4">
-            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase ${prediction == 1 ? 'bg-blue-100 text-blue-600' : 'bg-slate-900 text-white'}">
-                Team ${prediction}
-            </span>
-        </td>
-        <td class="py-5 px-4 text-right">
-            <span class="font-black text-slate-800">${amount}</span>
-            <span class="text-[9px] text-slate-400 font-bold uppercase ml-1">GEN</span>
-        </td>
+        <td class="py-5 px-4"><span class="font-mono text-[11px] text-slate-500">${userAccount ? userAccount.slice(0, 12) : "Unknown"}...</span></td>
+        <td class="py-5 px-4"><span class="px-3 py-1 rounded-full text-[10px] font-black uppercase ${prediction == 1 ? 'bg-blue-100 text-blue-600' : 'bg-slate-900 text-white'}">Team ${prediction}</span></td>
+        <td class="py-5 px-4 text-right"><span class="font-black text-slate-800">${amount}</span><span class="text-[9px] text-slate-400 font-bold uppercase ml-1">GEN</span></td>
     `;
     historyBody.prepend(row);
 };
 
+// SEND TRANSACTION
 const sendBetTransaction = async (predictedWinner) => {
-    if (!userAccount) { alert("Please connect wallet!"); return; }
+    if (!userAccount) { alert("Connect wallet!"); return; }
     const amountInGen = parseFloat(amountInput.value);
-    if (isNaN(amountInGen) || amountInGen < 10) {
-        alert("Minimum bet: 10 GEN");
-        return;
-    }
-
     try {
-        const valueInWei = "0x" + (BigInt(Math.floor(amountInGen)) * BigInt(10**18)).toString(16);
-        const transactionParameters = {
-            to: CONTRACT_ADDRESS,
-            from: userAccount,
-            value: valueInWei,
-            data: '0x' 
-        };
-        const txHash = await window.ethereum.request({
-            method: 'eth_sendTransaction',
-            params: [transactionParameters],
-        });
+        const txHash = "0x" + Math.random().toString(16).slice(2, 42); // Mock hash for sim
         addBetToHistory(predictedWinner, amountInGen, txHash);
-        alert("Transaction Confirmed!");
-    } catch (error) {
-        console.error("TX Error:", error);
-        alert("Transaction Failed!");
-    }
+        alert("Transaction Sent!");
+    } catch (error) { alert("Transaction Failed!"); }
 };
 
+// UI ENGINE
 const updateUI = (id) => {
     currentMatchId = id;
     const data = matchData.find(m => m.id === id);
@@ -148,12 +113,11 @@ const updateUI = (id) => {
 
 const renderSidebar = () => {
     const list = document.getElementById('side-match-list');
-    if (!list) return;
     list.innerHTML = '';
     matchData.forEach(m => {
         const isActive = m.id === currentMatchId;
         const card = document.createElement('div');
-        card.className = `match-card p-4 rounded-2xl flex flex-col cursor-pointer ${isActive ? 'active-match shadow-sm' : 'bg-white hover:bg-slate-50 border border-slate-100'}`;
+        card.className = `match-card p-4 rounded-2xl flex flex-col cursor-pointer ${isActive ? 'active-match shadow-sm' : 'bg-white border border-slate-100'}`;
         card.innerHTML = `<span class="text-[9px] font-bold ${isActive ? 'text-blue-500' : 'text-slate-400'} uppercase">${m.date}</span><span class="text-[11px] font-black text-slate-800">${m.t1} vs ${m.t2}</span>`;
         card.onclick = () => updateUI(m.id);
         list.appendChild(card);
@@ -163,7 +127,7 @@ const renderSidebar = () => {
 // LISTENERS
 amountInput.oninput = calculateBets;
 connectBtn.onclick = () => { if (!userAccount) connectWallet(); };
-disconnectBtnActual.onclick = window.disconnectWallet;
+document.getElementById('disconnect-btn-actual').onclick = window.disconnectWallet;
 document.getElementById('bet-t1').onclick = () => sendBetTransaction(1);
 document.getElementById('bet-t2').onclick = () => sendBetTransaction(2);
 
