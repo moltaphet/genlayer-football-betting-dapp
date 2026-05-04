@@ -1,83 +1,101 @@
-# ⚽ GenBet AI: Intelligent Football Prediction Market
-**Built for the GenLayer Ecosystem**
+# Sample GenLayer project
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/license/mit/)
+[![Discord](https://dcbadge.vercel.app/api/server/8Jm4v89VAu?compact=true&style=flat)](https://discord.gg/8Jm4v89VAu)
+[![Telegram](https://img.shields.io/badge/Telegram--T.svg?style=social&logo=telegram)](https://t.me/genlayer)
+[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/yeagerai.svg?style=social&label=Follow%20%40GenLayer)](https://x.com/GenLayer)
+[![GitHub star chart](https://img.shields.io/github/stars/yeagerai/genlayer-project-boilerplate?style=social)](https://star-history.com/#yeagerai/genlayer-js)
 
-GenBet AI is a decentralized prediction market that leverages **GenLayer's Intelligent Contracts** and AI-powered validators to automate match resolutions using real-time data from sources like BBC Sport.
+## 👀 About
+This project includes the boilerplate code for a GenLayer use case implementation, specifically a football bets game.
 
----
+## 📦 What's included
+- Basic requirements to deploy and test your intelligent contracts locally
+- Configuration file template
+<!-- - Test functions to write complete end-to-end tests -->
+- An example of an intelligent contract (Football Bets)
+- Example end-to-end tests for the contract provided
 
-## 🎓 Technical Deep Dive (Educational Guide)
+## 🛠️ Requirements
+- A running GenLayer Studio (Install from [Docs](https://docs.genlayer.com/developers/intelligent-contracts/tooling-setup#using-the-genlayer-studio) or work with the hosted version of [GenLayer Studio](https://studio.genlayer.com/)). If you are working locally, this repository code does not need to be located in the same directory as the Genlayer Studio.
 
-### 1. The Symmetric Risk-Reward Logic
-Unlike traditional platforms, GenBet implements a **Symmetric Risk Engine**. This ensures a fair 1:1 ratio between the user's potential net profit and their risk, calculated dynamically based on AI-provided odds.
+## 🚀 Steps to run this example
 
-**The Math:**
-* **Net Profit:** $Stake \times (Odds - 1)$
-* **Risk:** $Net Profit$ (Automatically balanced by the contract)
+### 1. Configure environment
+   Rename the `.env.example` file to `.env`, then fill in the values for your configuration. The provided values are the standard values for a tipical GenLayer Studio deployed locally.
 
-**JavaScript Implementation:**
+### 2. Deploy the contract
+   Deploy the contract from `/contracts/football_bets.py` using the Studio's UI:
+   1. Open the GenLayer Studio interface in your web browser (usually at http://localhost:8080).
+   2. Create a new file in the "Contracts" section and paste the content of `/contracts/football_bets.py` (the content is different than the existing contract from the examples).
+   3. Navigate to the "Run and Debug" section.
+   4. Follow the on-screen instructions to complete the deployment process.
 
-```javascript
-const netProfit = amount * (selectedOdds - 1);
-lossDisplay.innerText = `-${netProfit.toFixed(2)} GEN`; // Dynamic Risk Calculation
+### 3. Setup the frontend environment
+  1. All the content of the dApp is located in the `/app` folder.
+  2. Rename the `.env.example` file in the `/app` folder to `.env`.
+  3. Add the deployed contract address to the `/app/.env` under the variable `VITE_CONTRACT_ADDRESS`
 
-```
+### 4. Run the frontend Vue app
+   Ensure your GenLayer Studio is running, and execute the following commands in your terminal:
+   ```shell
+   cd app
+   npm install
+   npm run dev
+   ```
+   The terminal should display a link to access your frontend app (usually at http://localhost:5173/).
+   For more information on the code see [GenLayerJS](https://github.com/yeagerai/genlayer-js).
+   
+### 5. Test contracts
+1. Install the Python packages listed in the `requirements.txt` file in a virtual environment.
+2. Make sure your GenLayer Studio is running. Then execute the following command in your terminal:
+   ```shell
+   gltest
+   ```
 
-### 2. Intelligent Oracle Integration
+## ⚽ How the Football Bets Contract Works
 
-We use GenLayer's unique **AI Web Rendering** capabilities. The contract doesn't just fetch data; it "reads" the sports page to determine the winner.
+The Football Bets contract allows users to create bets for football matches, resolve those bets, and earn points for correct bets. Here's a breakdown of its main functionalities:
 
-* **Source:** BBC Sport / Real-time API
-* **Validation:** AI-powered nodes (e.g., Mistral) achieve consensus on the final score.
+1. Creating Bets:
+   - Users can create a bet for a specific football match by providing the game date, team names, and their predicted winner.
+   - The contract checks if the game has already finished and if the user has already made a bet for this match.
 
----
+2. Resolving Bets:
+   - After a match has concluded, users can resolve their bets.
+   - The contract fetches the actual match result from a specified URL.
+   - If the Bet was correct, the user earns a point.
 
-## 🛠 Prerequisites & Setup
+3. Querying Data:
+   - Users can retrieve all bets.
+   - The contract also allows querying of points, either for all players or for a specific player.
 
-GenBet requires **Docker** and the **GenLayer CLI** to run its local node and validator infrastructure.
+4. Getting Points:
+   - Points are awarded for correct bets.
+   - Users can check their total points or the points of any player.
 
-1. **Start Local Node:**
+## 🧪 Tests
 
-```bash
-pip install py-genlayer
-genlayer up
+This project includes integration tests that interact with the contract deployed in the Studio. These tests cover the main functionalities of the Football Bets contract:
 
-```
+1. Creating a bet
+2. Resolving a bet
+3. Querying bets for a player
+4. Querying points for a player
 
-2. **AI Validator:** Ensure an AI validator (Mistral/OpenAI) is active in your local node dashboard with a valid API key.
+The tests simulate real-world interactions with the contract, ensuring that it behaves correctly under various scenarios. They use the GenLayer Studio to deploy and interact with the contract, providing a comprehensive check of the contract's functionality in a controlled environment.
 
----
-
-## 🚀 Deployment & Smart Contract
-
-### 1. Using GenLayer Studio
-
-* Load `contracts/football_bets.py` into the GenLayer Studio.
-* **Constructor Inputs:** * `game_date`: YYYY-MM-DD
-* `team1` / `team2`: Names of the competing clubs.
+To run the tests, use the `gltest` command as mentioned in the "Steps to run this example" section.
 
 
-* Click **Deploy** to generate the Contract Address.
+## 💬 Community
+Connect with the GenLayer community to discuss, collaborate, and share insights:
+- **[Discord Channel](https://discord.gg/8Jm4v89VAu)**: Our primary hub for discussions, support, and announcements.
+- **[Telegram Group](https://t.me/genlayer)**: For more informal chats and quick updates.
 
-### 2. Contract Methods
+Your continuous feedback drives better product development. Please engage with us regularly to test, discuss, and improve GenLayer.
 
-* `place_bet(selection)`: Submit your prediction (1, 2, or 0).
-* `resolve()`: Triggers the `gl.nondet.web.render` logic to scrape results and process payouts.
+## 📖 Documentation
+For detailed information on how to use GenLayerJS SDK, please refer to our [documentation](https://docs.genlayer.com/).
 
----
-
-## 📂 Project Structure
-
-* `contracts/`: Python-based Intelligent Contracts for GenLayer.
-* `frontend/`: Responsive UI built with Tailwind CSS and GenLayer-JS.
-* `tests/`: Automated scripts for verifying bet logic.
-
----
-
-## 🔗 Submission Evidence
-
-* **Live Demo:** [genlayer-football-betting-dapp.vercel.app](https://www.google.com/search?q=https://genlayer-football-betting-dapp.vercel.app/)
-* **Project Goal:** To demonstrate how AI Oracles can eliminate human error in decentralized betting.
-
----
-
-*Developed by @0xehs4hn for GenLayer Buildathon 2026.*
+## 📜 License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
