@@ -2,11 +2,40 @@
 const CONTRACT_ADDRESS = "0x4d8Cd6Caa7D7681AeF2E3B6e21FFB3238eCb4814";
 
 // DATABASE
+// DATABASE
 const matchData = [
-    { id: "m1", date: "Today, Feb 11", t1: "Real Madrid", t2: "Barcelona", t1_img: "https://crests.football-data.org/86.svg", t2_img: "https://crests.football-data.org/81.svg" },
-    { id: "m2", date: "Feb 12, 20:45", t1: "Arsenal", t2: "Man City", t1_img: "https://crests.football-data.org/57.svg", t2_img: "https://crests.football-data.org/65.svg" },
-    { id: "m3", date: "Feb 13, 21:00", t1: "B. Munich", t2: "PSG", t1_img: "https://crests.football-data.org/5.svg", t2_img: "https://crests.football-data.org/524.svg" },
-    { id: "m4", date: "Feb 14, 18:30", t1: "Liverpool", t2: "Chelsea", t1_img: "https://crests.football-data.org/64.svg", t2_img: "https://crests.football-data.org/61.svg" }
+    { 
+        id: "m1", 
+        date: "Today, Feb 11", 
+        t1: "Real Madrid", 
+        t2: "Barcelona", 
+        t1_img: "/logos/spain-la-liga-2025-2026.football-logos.cc/256x256/Real Madrid.png", 
+        t2_img: "/logos/spain-la-liga-2025-2026.football-logos.cc/256x256/Barcelona.png" 
+    },
+    { 
+        id: "m2", 
+        date: "Feb 12, 20:45", 
+        t1: "Arsenal", 
+        t2: "Man City", 
+        t1_img: "/logos/english-premier-league-2025-2026.football-logos.cc/256x256/Arsenal.png", 
+        t2_img: "/logos/english-premier-league-2025-2026.football-logos.cc/256x256/Manchester City.png" 
+    },
+    { 
+        id: "m3", 
+        date: "Feb 13, 21:00", 
+        t1: "B. Munich", 
+        t2: "PSG", 
+        t1_img: "/logos/germany-bundesliga-2025-2026.football-logos.cc/256x256/Bayern Munich.png", 
+        t2_img: "/logos/france-ligue-1-2025-2026.football-logos.cc/256x256/Paris Saint-Germain.png" 
+    },
+    { 
+        id: "m4", 
+        date: "Feb 14, 18:30", 
+        t1: "Liverpool", 
+        t2: "Chelsea", 
+        t1_img: "/logos/english-premier-league-2025-2026.football-logos.cc/256x256/Liverpool.png", 
+        t2_img: "/logos/english-premier-league-2025-2026.football-logos.cc/256x256/Chelsea.png" 
+    }
 ];
 
 // STATE
