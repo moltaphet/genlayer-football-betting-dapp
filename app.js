@@ -10,21 +10,6 @@
 const CONTRACT_ADDRESS = "0x4d8Cd6Caa7D7681AeF2E3B6e21FFB3238eCb4814";
 
 // -----------------------------------------------------------
-// MATCH DATABASE
-// Logo path convention: /logos/{league-folder}/256x256/{Team Name}.png
-// encodeURI() is applied at render time to handle spaces safely.
-// -----------------------------------------------------------
-// -----------------------------------------------------------
-// MATCH DATABASE (Direct Links from GitHub Repository)
-// Using raw.githubusercontent.com to ensure direct image access.
-// -----------------------------------------------------------
-// -----------------------------------------------------------
-// MATCH DATABASE (Direct Sync with GitHub Repository)
-// -----------------------------------------------------------
-// -----------------------------------------------------------
-// MATCH DATABASE (Direct Sync with Leo4815162342 Repository)
-// -----------------------------------------------------------
-// -----------------------------------------------------------
 // MATCH DATABASE (Using your EXACT local filenames from public/logos)
 // -----------------------------------------------------------
 const MATCH_DATA = [
