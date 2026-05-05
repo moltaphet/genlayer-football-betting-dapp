@@ -3,15 +3,14 @@
 
 from genlayer import *
 import json
-from dataclasses import dataclass
 
-@allow_storage
-@dataclass
+@gl.dataclass
 class BetInfo:
     team: u256
     amount: u256
 
-class PredictionMarket(gl.Contract):
+@gl.contract
+class PredictionMarket:
     has_resolved: bool
     team1: str
     team2: str
@@ -25,7 +24,7 @@ class PredictionMarket(gl.Contract):
 
     def __init__(self, game_date: str, team1: str, team2: str):
         self.has_resolved = False
-        # Ensures avoiding Persian characters in code structures
+        # Avoids Persian characters in code structures
         self.resolution_url = f"https://www.bbc.com/sport/football/scores-fixtures/{game_date}"
         self.team1 = team1
         self.team2 = team2
@@ -38,14 +37,18 @@ class PredictionMarket(gl.Contract):
 
     @gl.public.write
     def place_bet(self, predicted_winner: int):
-        assert not self.has_resolved, "Market is already closed"
+        # Error Classification: [EXPECTED] prefix for standard validation
+        if self.has_resolved:
+            raise gl.UserError("[EXPECTED] Market is already closed")
         
         min_bet = u256(10 * 10**18)
         amount = gl.message.value
-        assert amount >= min_bet, "Minimum bet is 10 GEN"
+        if amount < min_bet:
+            raise gl.UserError("[EXPECTED] Minimum bet is 10 GEN")
         
         team_id = u256(predicted_winner)
-        assert team_id in [u256(1), u256(2)], "Choose 1 or 2"
+        if team_id not in [u256(1), u256(2)]:
+            raise gl.UserError("[EXPECTED] Invalid team selection. Choose 1 or 2")
         
         sender = gl.message.sender_address
         self.bets[sender] = BetInfo(team=team_id, amount=amount)
@@ -63,12 +66,14 @@ class PredictionMarket(gl.Contract):
         if self.has_resolved:
             return "ALREADY_RESOLVED"
 
+        # Web rendering using GenLayer Oracle nodes
         web_content = gl.nondet.web.render(self.resolution_url, mode="text")
         
         prompt = (f"Analyze this: {web_content[:2500]}. "
-                  f"Winner between {self.team1} and {self.team2}? "
-                  "Return JSON: {\"winner\": 1/2/0, \"score\": \"X-Y\"}")
+                  f"Who is the winner between {self.team1} and {self.team2}? "
+                  "Respond ONLY with a JSON: {\"winner\": 1/2/0, \"score\": \"X-Y\"}")
 
+        # Consensus through Intelligent Equivalence Principle
         raw_result = gl.eq_principle.prompt_non_comparative(
             gl.nondet.exec_prompt(prompt, num_proposers=3)
         )
@@ -88,13 +93,14 @@ class PredictionMarket(gl.Contract):
                     self._execute_payouts()
                 return "RESOLVED_SUCCESSFULLY"
         except:
-            return "RESOLUTION_FAILED"
+            raise gl.UserError("[EXPECTED] Intelligent Oracle failed to parse result")
 
     def _execute_payouts(self):
         winning_pool = self.pool_team1 if self.winner == u256(1) else self.pool_team2
         if winning_pool > 0:
             for addr, bet in self.bets.items():
                 if bet.team == self.winner:
+                    # Professional financial calculation using u256
                     reward = (bet.amount * self.total_pool) // winning_pool
                     gl.transfer(addr, reward)
 
@@ -108,5 +114,7 @@ class PredictionMarket(gl.Contract):
             "is_resolved": self.has_resolved,
             "winner_id": int(self.winner),
             "final_score": self.score,
-            "total_pool": str(self.total_pool)
+            "total_pool": str(self.total_pool),
+            "team1": self.team1,
+            "team2": self.team2
         }
