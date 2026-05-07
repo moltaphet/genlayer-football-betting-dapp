@@ -1,6 +1,6 @@
 /**
  * ============================================================
- * GENBET AI — main.js (UPDATED: TRANSACTION STATES)
+ * GENBET AI — main.js (FINAL: WITH RECEIPT MODAL & FIXES)
  * ============================================================
  */
 
@@ -106,6 +106,7 @@ const Bets = {
     STATE.globalBets.unshift(newBet);
     this.save();
     UI.History.render();
+    return newBet; 
   }
 };
 
@@ -154,8 +155,9 @@ const Web3 = {
         params: [{ to: CONFIG.CONTRACT_ADDRESS, from: STATE.userAccount, value: valueInWei, data: '0x' }],
       });
 
-      Bets.add(teamIndex, stake, txHash, match);
-      UI.Toast.show('BET SUCCESSFUL', 'success');
+      const newBet = Bets.add(teamIndex, stake, txHash, match);
+      UI.Modal.show(newBet); // نمایش رسید به جای Toast ساده
+      
       if (el('bet-amount')) el('bet-amount').value = '';
       Calculations.update();
     } catch (err) {
@@ -188,11 +190,11 @@ const Calculations = {
   },
 
   update() {
-    const { netProfit, totalPayout } = Calculations.compute();
+    const { stake, netProfit, totalPayout } = Calculations.compute();
     const targets = [
       { element: el('calc-payout'), value: totalPayout.toFixed(2), prefix: '' },
       { element: el('net-profit'), value: netProfit.toFixed(2), prefix: '+' },
-      { element: el('calc-loss'), value: netProfit.toFixed(2), prefix: '-' }
+      { element: el('calc-loss'), value: stake.toFixed(2), prefix: '-' } 
     ];
 
     targets.forEach(item => {
@@ -203,7 +205,7 @@ const Calculations = {
 
       // --- AUTO-SCALE FONT SIZE ---
       const length = fullText.length;
-      let fontSize = '14px'; // پیش‌فرض
+      let fontSize = '14px'; 
 
       if (length > 18) fontSize = '8px';
       else if (length > 15) fontSize = '10px';
@@ -222,7 +224,7 @@ const Calculations = {
 };
 
 // ─────────────────────────────────────────────────────────────
-// UI COMPONENTS (No changes below this line)
+// UI COMPONENTS
 // ─────────────────────────────────────────────────────────────
 
 const UI = {
@@ -396,6 +398,54 @@ const UI = {
     }
   },
 
+  Modal: {
+    show(bet) {
+      const modal = el('bet-modal');
+      const content = el('receipt-content');
+      if (!modal || !content) return;
+
+      content.innerHTML = `
+        <div class="bg-slate-50 rounded-2xl p-6 border-2 border-dashed border-slate-200">
+          <div class="text-center mb-4">
+            <div class="text-[10px] font-bold text-blue-600 uppercase mb-1">Match Detail</div>
+            <div class="text-sm font-black text-slate-800 uppercase">${bet.matchName}</div>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-white p-3 rounded-xl border border-slate-100 text-center">
+              <div class="text-[9px] font-bold text-slate-400 uppercase">Your Pick</div>
+              <div class="text-[12px] font-black text-slate-800 uppercase">${bet.pick}</div>
+            </div>
+            <div class="bg-white p-3 rounded-xl border border-slate-100 text-center">
+              <div class="text-[9px] font-bold text-slate-400 uppercase">Odds</div>
+              <div class="text-[12px] font-black text-blue-600">${bet.odds.toFixed(2)}</div>
+            </div>
+            <div class="bg-white p-3 rounded-xl border border-slate-100 text-center">
+              <div class="text-[9px] font-bold text-slate-400 uppercase">Stake</div>
+              <div class="text-[12px] font-black text-slate-800">${bet.stake} GEN</div>
+            </div>
+            <div class="bg-green-50 p-3 rounded-xl border border-green-100 text-center">
+              <div class="text-[9px] font-bold text-green-600 uppercase">Est. Payout</div>
+              <div class="text-[12px] font-black text-green-700">${(bet.stake * bet.odds).toFixed(2)} GEN</div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-4 border-t border-slate-200 text-center">
+            <a href="${CONFIG.EXPLORER_TX_URL}${bet.txHash}" target="_blank" class="inline-block text-blue-500 font-bold text-[10px] hover:underline uppercase">
+              Verify On Blockchain ↗
+            </a>
+          </div>
+        </div>
+      `;
+
+      modal.classList.remove('hidden');
+    },
+    close() {
+      const modal = el('bet-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+  },
+
   Toast: {
     show(msg, type) {
       const toast = document.createElement('div');
@@ -408,6 +458,7 @@ const UI = {
 };
 
 window.setOdds = (odds, btn) => UI.Terminal.setOdds(odds, btn);
+window.closeBetModal = () => UI.Modal.close();
 
 window.addEventListener('DOMContentLoaded', () => {
   Bets.load();

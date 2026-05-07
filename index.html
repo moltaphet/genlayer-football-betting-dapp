@@ -140,7 +140,6 @@
         font-weight: 800 !important;
     }
 
-    /* FIX: Footer visibility on dark background */
     footer {
         border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
     }
@@ -331,6 +330,26 @@
             </div>
         </div>
     </footer>
+
+    <div id="bet-modal" class="fixed inset-0 z-[300] hidden flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-[32px] p-8 w-full max-w-md shadow-2xl transform transition-all border border-slate-100">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-black text-slate-800 italic uppercase">Bet Receipt</h3>
+                <button onclick="closeBetModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div id="receipt-content" class="space-y-4">
+                </div>
+
+            <button onclick="closeBetModal()" class="w-full mt-8 py-4 bg-blue-600 text-white font-black rounded-2xl shadow-lg hover:bg-blue-700 transition-all uppercase active:scale-95">
+                Got it!
+            </button>
+        </div>
+    </div>
     
     <script type="module" src="/src/main.js"></script>
 </body>
