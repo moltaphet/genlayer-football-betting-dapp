@@ -194,7 +194,7 @@ const Calculations = {
     const targets = [
       { element: el('calc-payout'), value: totalPayout.toFixed(2), prefix: '' },
       { element: el('net-profit'), value: netProfit.toFixed(2), prefix: '+' },
-      { element: el('calc-loss'), value: stake.toFixed(2), prefix: '-' } 
+      { element: el('calc-loss'), value: netProfit.toFixed(2), prefix: '-' } 
     ];
 
     targets.forEach(item => {
