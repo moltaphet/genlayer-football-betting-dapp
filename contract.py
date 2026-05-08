@@ -1,120 +1,113 @@
-# v0.1.0
-# { "Depends": "py-genlayer:latest" }
+# { "Depends": "py-genlayer:test" }
 
-from genlayer import *
+from dataclasses import dataclass
+from datetime import datetime
 import json
+from genlayer import *
 
-@gl.dataclass
-class BetInfo:
-    team: u256
-    amount: u256
+@allow_storage
+@dataclass
+class BridgeMessageData:
+    """Data class for storing bridge message data"""
+    player_address: str
+    receipt: str
 
-@gl.contract
-class PredictionMarket:
-    has_resolved: bool
-    team1: str
-    team2: str
-    resolution_url: str
-    winner: u256
-    score: str
-    total_pool: u256
-    bets: TreeMap[Address, BetInfo]
-    pool_team1: u256
-    pool_team2: u256
+@allow_storage
+@dataclass
+class BridgeMessage:
+    """Data class for storing bridge message data"""
+    target_chain: str  # "base"
+    target_contract: str  # Address of the UnstoppableGame contract in Base
+    data: BridgeMessageData  # Additional data needed for the action
+    timestamp: u256
+    status: str  # "pending", "completed", "failed"
+    result: str  # Result of the action if completed
+    valid: bool  # Whether the message is valid
 
-    def __init__(self, game_date: str, team1: str, team2: str):
-        self.has_resolved = False
-        # Avoids Persian characters in code structures
-        self.resolution_url = f"https://www.bbc.com/sport/football/scores-fixtures/{game_date}"
-        self.team1 = team1
-        self.team2 = team2
-        self.winner = u256(0)
-        self.score = ""
-        self.total_pool = u256(0)
-        self.pool_team1 = u256(0)
-        self.pool_team2 = u256(0)
-        self.bets = TreeMap()
+class UnstoppableBridge(gl.Contract):
+    messages: TreeMap[str, BridgeMessage]  # receipt -> message details
+    api_url: str  # URL for Base RPC endpoint
 
-    @gl.public.write
-    def place_bet(self, predicted_winner: int):
-        # Error Classification: [EXPECTED] prefix for standard validation
-        if self.has_resolved:
-            raise gl.UserError("[EXPECTED] Market is already closed")
-        
-        min_bet = u256(10 * 10**18)
-        amount = gl.message.value
-        if amount < min_bet:
-            raise gl.UserError("[EXPECTED] Minimum bet is 10 GEN")
-        
-        team_id = u256(predicted_winner)
-        if team_id not in [u256(1), u256(2)]:
-            raise gl.UserError("[EXPECTED] Invalid team selection. Choose 1 or 2")
-        
-        sender = gl.message.sender_address
-        self.bets[sender] = BetInfo(team=team_id, amount=amount)
-        
-        self.total_pool += amount
-        if team_id == u256(1):
-            self.pool_team1 += amount
-        else:
-            self.pool_team2 += amount
-        
-        return "BET_PLACED"
-
-    @gl.public.write
-    def resolve_market(self):
-        if self.has_resolved:
-            return "ALREADY_RESOLVED"
-
-        # Web rendering using GenLayer Oracle nodes
-        web_content = gl.nondet.web.render(self.resolution_url, mode="text")
-        
-        prompt = (f"Analyze this: {web_content[:2500]}. "
-                  f"Who is the winner between {self.team1} and {self.team2}? "
-                  "Respond ONLY with a JSON: {\"winner\": 1/2/0, \"score\": \"X-Y\"}")
-
-        # Consensus through Intelligent Equivalence Principle
-        raw_result = gl.eq_principle.prompt_non_comparative(
-            gl.nondet.exec_prompt(prompt, num_proposers=3)
-        )
-
-        try:
-            result = json.loads(raw_result)
-            win_id = int(result.get("winner", -1))
-            
-            if win_id in [0, 1, 2]:
-                self.has_resolved = True
-                self.winner = u256(win_id)
-                self.score = result.get("score", "N/A")
-                
-                if self.winner == u256(0):
-                    self._execute_refunds()
-                else:
-                    self._execute_payouts()
-                return "RESOLVED_SUCCESSFULLY"
-        except:
-            raise gl.UserError("[EXPECTED] Intelligent Oracle failed to parse result")
-
-    def _execute_payouts(self):
-        winning_pool = self.pool_team1 if self.winner == u256(1) else self.pool_team2
-        if winning_pool > 0:
-            for addr, bet in self.bets.items():
-                if bet.team == self.winner:
-                    # Professional financial calculation using u256
-                    reward = (bet.amount * self.total_pool) // winning_pool
-                    gl.transfer(addr, reward)
-
-    def _execute_refunds(self):
-        for addr, bet in self.bets.items():
-            gl.transfer(addr, bet.amount)
+    def __init__(self, api_url: str):
+        self.api_url = api_url.strip()
 
     @gl.public.view
-    def get_market_data(self) -> dict:
-        return {
-            "is_resolved": self.has_resolved,
-            "winner_id": int(self.winner),
-            "final_score": self.score,
-            "total_pool": str(self.total_pool),
-            "team1": self.team1,
-            "team2": self.team2
-        }
+    def check_valid_payment(self, player_address: str, receipt: str, base_contract_address: str) -> dict:
+        """
+        Check if a player has paid for their message in Base.
+        This will make an RPC call to Base to check the payment status.
+        """
+
+        print(f"check_valid_payment api_url: {self.api_url}")
+        print(f"check_valid_payment base_contract_address: {base_contract_address}")
+        print(f"check_valid_payment player_address: {player_address}")
+        print(f"check_valid_payment receipt: {receipt}")
+
+        # playerAddress=asdasd&receipt=asdasda&baseContractAddress=asdasdasd
+        url = f"{self.api_url}/bridge/payment/validate?baseContractAddress={base_contract_address}&receipt={receipt}&playerAddress={player_address}"
+        print(f"check_valid_payment url: {url}")
+
+        # Make the RPC call to Backend using gl.get_webpage
+        def fetch_payment_status() -> str:
+            response = gl.nondet.web.get(url)
+            return response.body
+
+        # Use equivalence principle to ensure all nodes get the same response
+        response = gl.eq_principle.strict_eq(fetch_payment_status)
+        print(f"response: {response}")
+        body_decoded = response.decode()
+        print(f"check_valid_payment response: {body_decoded}")
+
+        body_json = json.loads(response)
+        if body_json["data"]["valid"] != True:
+            # Store the message
+            raise gl.vm.UserError(f"Payment for {receipt} not found: {body_json['data']['error']}")
+
+        return BridgeMessage(
+            target_chain="base",
+            target_contract=base_contract_address,
+            data=BridgeMessageData(
+                player_address=player_address,
+                receipt=receipt
+            ),
+            timestamp=u256(int(datetime.now().timestamp())),
+            status="completed",
+            result=json.dumps(body_json["data"]),
+            valid=True
+        )
+
+    @gl.public.write
+    def verify_payment(self, player_address: str, receipt: str, base_contract_address: str) -> str:
+        """
+        Verify if a player has paid for their message in Base.
+        This will make an RPC call to Base to check the payment status.
+        """
+        print(f"verify_payment api_url: {self.api_url}")
+        print(f"verify_payment base_contract_address: {base_contract_address}")
+        print(f"verify_payment player_address: {player_address}")
+        print(f"verify_payment receipt: {receipt}")
+
+        if receipt in self.messages:
+            response_payload = {"status": "success", "detail": receipt}
+            return json.dumps(response_payload, separators=(',', ':'), sort_keys=True)
+
+        response_payload = None
+        try:
+            message = self.check_valid_payment(player_address, receipt, base_contract_address)
+            self.messages[receipt] = message
+            response_payload = {"status": "success", "detail": receipt}
+        except Exception as e:
+            response_payload = {"status": "error", "detail": str(e)}
+
+        return json.dumps(response_payload, separators=(',', ':'), sort_keys=True)
+
+    @gl.public.view
+    def get_message(self, receipt: str) -> dict:
+        print(f"get_message receipt: {receipt}")
+        print(f"self.messages: {self.messages}")
+
+        """Get details of a specific message"""
+        if receipt not in self.messages:
+            raise gl.vm.UserError(f"Message {receipt} not found")
+
+        return self.messages[receipt]
