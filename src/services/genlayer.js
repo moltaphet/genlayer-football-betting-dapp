@@ -21,34 +21,50 @@ export const client = createClient({
   account
 });
 
-/**
- * placeBetRequest:
- * This function fixes the "Empty Calldata" issue reported by reviewers.
- * It explicitly calls the 'place_bet' method on the Intelligent Contract.
- * 
- * @param {number} teamId - Use 1 for Team A or 2 for Team B
- * @param {number} amountInGen - The amount of GEN tokens to wager
- */
-export const placeBetRequest = async (teamId, amountInGen) => {
-  if (!account) {
-    throw new Error("Authentication Error: No active account found. Please create or import an account.");
-  }
-
-  // Converts GEN tokens to Wei (10^18) for blockchain compatibility
-  const valueInWei = BigInt(amountInGen) * BigInt(10 ** 18);
-
+const parseContractJson = (result) => {
   try {
-    const txHash = await client.writeContract({
-      address: CONTRACT_ADDRESS,
-      functionName: "place_bet",
-      args: [parseInt(teamId)], 
-      value: valueInWei,
-    });
-
-    console.log("Transaction successfully sent. Hash:", txHash);
-    return txHash;
-  } catch (error) {
-    console.error("Failed to execute placeBetRequest:", error);
-    throw error;
+    return typeof result === "string" ? JSON.parse(result) : result;
+  } catch {
+    return result;
   }
+};
+
+export const verifyPayment = async (playerAddress, receipt, baseContractAddress) => {
+  if (!account) throw new Error("No active account. Please create an account first.");
+  const txHash = await client.writeContract({
+    address: CONTRACT_ADDRESS,
+    functionName: "verify_payment",
+    args: [playerAddress, receipt, baseContractAddress],
+  });
+  return txHash;
+};
+
+export const checkValidPayment = async (playerAddress, receipt, baseContractAddress) => {
+  const result = await client.readContract({
+    address: CONTRACT_ADDRESS,
+    functionName: "check_valid_payment",
+    args: [playerAddress, receipt, baseContractAddress],
+  });
+  return parseContractJson(result);
+};
+
+export const getMessage = async (receipt) => {
+  const result = await client.readContract({
+    address: CONTRACT_ADDRESS,
+    functionName: "get_message",
+    args: [receipt],
+  });
+  return parseContractJson(result);
+};
+
+export const getDeal = async (receipt) => getMessage(receipt);
+
+export const approveManually = async (playerAddress, receipt, baseContractAddress) => {
+  if (!account) throw new Error("No active account. Please create an account first.");
+  const txHash = await client.writeContract({
+    address: CONTRACT_ADDRESS,
+    functionName: "approve_manually",
+    args: [playerAddress, receipt, baseContractAddress],
+  });
+  return txHash;
 };

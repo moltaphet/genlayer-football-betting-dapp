@@ -11,7 +11,7 @@
 // ─────────────────────────────────────────────────────────────
 
 const CONFIG = Object.freeze({
-  CONTRACT_ADDRESS: '0xa8F71Ac13A8408A518187CDaeCE31481081fbBbD',
+  CONTRACT_ADDRESS: '0x3253E603ca06989daA11356785D0c4C3ab51593f',
   EXPLORER_TX_URL:  'https://explorer-studio.genlayer.com/tx/', 
   MIN_STAKE_GEN:    10,
   LOGO_BASE:        '/logos',

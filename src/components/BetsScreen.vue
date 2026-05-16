@@ -26,6 +26,9 @@
       </div>
     </header>
     <main class="mx-auto py-6 sm:px-6 lg:px-8">
+      <div v-if="errorMessage" class="mb-4 px-4 py-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+        {{ errorMessage }}
+      </div>
       <!-- Account Section -->
 
       <div class="grid grid-cols-1 md:grid-cols-10 gap-8">
@@ -264,11 +267,17 @@ const userAddress = computed(() => userAccount.value?.address);
 const bets = ref([]);
 const leaderboard = ref([]);
 const showCreateModal = ref(false);
+const errorMessage = ref("");
+
+const showError = (msg) => {
+  errorMessage.value = msg;
+  setTimeout(() => { errorMessage.value = ""; }, 5000);
+};
 
 // Methods
 const createUserAccount = async () => {
   userAccount.value = createAccount();
-  footballBets.updateAccount(userAccount.value);  
+  footballBets.updateAccount(userAccount.value);
   userPoints.value = 0;
 };
 
@@ -283,44 +292,66 @@ const openCreateModal = () => {
 };
 
 const loadBets = async () => {
-  const allBets = await footballBets.getBets();
-  bets.value = allBets;
+  try {
+    const allBets = await footballBets.getBets();
+    bets.value = allBets;
+  } catch (e) {
+    console.error("Failed to load bets:", e);
+    showError("Could not load bets: " + (e?.message ?? e));
+  }
 };
 
 const loadLeaderboard = async () => {
-  leaderboard.value = await footballBets.getLeaderboard();
+  try {
+    leaderboard.value = await footballBets.getLeaderboard();
+  } catch (e) {
+    console.error("Failed to load leaderboard:", e);
+  }
 };
 
 const refreshPlayerPoints = async () => {
-  userPoints.value = await footballBets.getPlayerPoints(userAddress.value);
+  if (!userAddress.value) return;
+  try {
+    userPoints.value = await footballBets.getPlayerPoints(userAddress.value);
+  } catch (e) {
+    console.error("Failed to refresh points:", e);
+  }
 };
 
 const createBet = async () => {
-  if (gameDate.value && team1.value && team2.value && predictedWinner.value) {
-    creatingBet.value = true;
+  if (!gameDate.value || !team1.value || !team2.value || !predictedWinner.value) return;
+  creatingBet.value = true;
+  try {
     await footballBets.createBet(gameDate.value, team1.value, team2.value, predictedWinner.value);
     await loadBets();
-    // Reset form fields
-    creatingBet.value = false;
     gameDate.value = "";
     team1.value = "";
     team2.value = "";
     predictedWinner.value = "";
     showCreateModal.value = false;
+  } catch (e) {
+    console.error("Failed to create bet:", e);
+    showError("Bet failed: " + (e?.message ?? e));
+  } finally {
+    creatingBet.value = false;
   }
 };
 
 const resolveBet = async (betId) => {
   resolvingBet.value = betId;
-  await footballBets.resolveBet(betId);
-  resolvingBet.value = 0;
-  await loadBets();
-  await loadLeaderboard();
-  await refreshPlayerPoints();
+  try {
+    await footballBets.resolveBet(betId);
+    await loadBets();
+    await loadLeaderboard();
+    await refreshPlayerPoints();
+  } catch (e) {
+    console.error("Failed to resolve bet:", e);
+    showError("Resolve failed: " + (e?.message ?? e));
+  } finally {
+    resolvingBet.value = 0;
+  }
 };
 
-
-// Initialize with some sample data
 onMounted(async () => {
   await loadBets();
   await loadLeaderboard();
