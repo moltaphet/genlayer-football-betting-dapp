@@ -1,11 +1,7 @@
 import { createClient, createAccount as createGenLayerAccount, generatePrivateKey } from "genlayer-js";
-import { simulator } from "genlayer-js/chains";
+import { testnet } from "genlayer-js/chains";
 
-/**
- * CONTRACT_ADDRESS:
- * Replace this with the actual deployed address from GenLayer Studio.
- */
-export const CONTRACT_ADDRESS = "0x42f4e7ba1047417486562bd2f9786b27085616f7ad24e84869cce2d293ae8103"; 
+export const CONTRACT_ADDRESS = "0x3253E603ca06989daA11356785D0c4C3ab51593f";
 
 const accountPrivateKey = localStorage.getItem("accountPrivateKey") || null;
 export const account = accountPrivateKey ? createGenLayerAccount(accountPrivateKey) : null;
@@ -20,9 +16,9 @@ export const removeAccount = () => {
   localStorage.removeItem("accountPrivateKey");
 };
 
-export const client = createClient({ 
-  chain: simulator, 
-  account 
+export const client = createClient({
+  chain: testnet,
+  account
 });
 
 /**
