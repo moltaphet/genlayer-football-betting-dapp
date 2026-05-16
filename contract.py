@@ -1,173 +1,117 @@
 # { "Depends": "py-genlayer:test" }
 
-from dataclasses import dataclass
-from datetime import datetime
 import json
+from dataclasses import dataclass
 from genlayer import *
 
-@allow_storage
-@dataclass
-class BridgeMessageData:
-    player_address: str
-    receipt: str
 
 @allow_storage
 @dataclass
-class BridgeMessage:
-    target_chain: str
-    target_contract: str
-    data: BridgeMessageData
-    timestamp: u64
-    status: str
-    result: str
-    valid: bool
+class Bet:
+    id: str
+    has_resolved: bool
+    game_date: str
+    resolution_url: str
+    team1: str
+    team2: str
+    predicted_winner: str
+    real_winner: str
+    real_score: str
 
-class UnstoppableBridge(gl.Contract):
-    messages: TreeMap[str, BridgeMessage]
-    api_url: str
 
-    def __init__(self, api_url: str):
-        self.api_url = api_url.strip()
-        self.messages = TreeMap[str, BridgeMessage]()
+class FootballBets(gl.Contract):
+    bets: TreeMap[Address, TreeMap[str, Bet]]
+    points: TreeMap[Address, u256]
 
-    def _build_message(self, player_address: str, receipt: str, base_contract_address: str, result_data: str, timestamp: int) -> BridgeMessage:
-        return BridgeMessage(
-            target_chain="base",
-            target_contract=base_contract_address,
-            data=BridgeMessageData(
-                player_address=player_address,
-                receipt=receipt,
-            ),
-            timestamp=u64(timestamp),
-            status="completed",
-            result=result_data,
-            valid=True,
-        )
+    def __init__(self):
+        pass
 
-    def _message_to_json(self, msg: BridgeMessage) -> str:
-        return json.dumps({
-            "target_chain": msg.target_chain,
-            "target_contract": msg.target_contract,
-            "player_address": msg.data.player_address,
-            "receipt": msg.data.receipt,
-            "timestamp": int(msg.timestamp),
-            "status": msg.status,
-            "result": msg.result,
-            "valid": msg.valid,
-        }, separators=(",", ":"), sort_keys=True)
+    def _check_match(self, resolution_url: str, team1: str, team2: str) -> dict:
+        def get_match_result() -> str:
+            web_data = gl.get_webpage(resolution_url, mode="text")
+            task = f"""
+Extract the match result for:
+Team 1: {team1}
+Team 2: {team2}
 
-    @gl.public.view
-    def check_valid_payment(self, player_address: str, receipt: str, base_contract_address: str) -> str:
-        """Check if a player has paid for their message in Base via an RPC call."""
-        print(f"check_valid_payment api_url: {self.api_url}")
-        print(f"check_valid_payment base_contract_address: {base_contract_address}")
-        print(f"check_valid_payment player_address: {player_address}")
-        print(f"check_valid_payment receipt: {receipt}")
+Web content:
+{web_data}
 
-        url = (
-            f"{self.api_url}/bridge/payment/validate"
-            f"?baseContractAddress={base_contract_address}"
-            f"&receipt={receipt}"
-            f"&playerAddress={player_address}"
-        )
-        print(f"check_valid_payment url: {url}")
+Respond in JSON:
+{{
+    "score": str,
+    "winner": int
+}}
+Rules:
+- "score" should be e.g. "1:2", or "-" if the match has not finished.
+- "winner" should be 1 if Team 1 won, 2 if Team 2 won, 0 for draw,
+  or -1 if the match has not finished yet.
+Respond ONLY with the JSON object. No extra text, no markdown fences.
+"""
+            result = gl.exec_prompt(task).replace("```json", "").replace("```", "").strip()
+            return json.dumps(json.loads(result), sort_keys=True)
 
-        # Both the web call and datetime.now() are captured inside strict_eq
-        # so all validators agree on the response body AND the timestamp.
-        with gl.eq_principle.strict_eq() as eq:
-            response = gl.nondet.web.get(url)
-            eq.set(json.dumps({
-                "body": response.text,
-                "timestamp": int(datetime.now().timestamp()),
-            }))
-
-        data = json.loads(eq.get())
-        body_json = json.loads(data["body"])
-        timestamp = data["timestamp"]
-        print(f"check_valid_payment response: {body_json}")
-
-        if body_json["data"]["valid"] is not True:
-            raise gl.vm.UserError(
-                f"Payment for {receipt} not found: {body_json['data']['error']}"
-            )
-
-        msg = self._build_message(player_address, receipt, base_contract_address, json.dumps(body_json["data"]), timestamp)
-        return self._message_to_json(msg)
+        return json.loads(gl.eq_principle_strict_eq(get_match_result))
 
     @gl.public.write
-    def verify_payment(self, player_address: str, receipt: str, base_contract_address: str) -> str:
-        """Verify payment and persist a BridgeMessage to contract storage."""
-        print(f"verify_payment api_url: {self.api_url}")
-        print(f"verify_payment base_contract_address: {base_contract_address}")
-        print(f"verify_payment player_address: {player_address}")
-        print(f"verify_payment receipt: {receipt}")
+    def create_bet(
+        self, game_date: str, team1: str, team2: str, predicted_winner: str
+    ) -> None:
+        resolution_url = (
+            "https://www.bbc.com/sport/football/scores-fixtures/" + game_date
+        )
+        sender = gl.message.sender_address
+        bet_id = f"{game_date}_{team1}_{team2}".lower()
 
-        if str(receipt) in self.messages:
-            return json.dumps(
-                {"status": "success", "detail": receipt},
-                separators=(",", ":"),
-                sort_keys=True,
-            )
+        if sender in self.bets and bet_id in self.bets[sender]:
+            raise gl.vm.UserError("Bet already exists for this match")
 
-        try:
-            result_json = self.check_valid_payment(player_address, receipt, base_contract_address)
-            result_data = json.loads(result_json)
-            timestamp = result_data.get("timestamp", int(datetime.now().timestamp()))
-            msg = self._build_message(player_address, receipt, base_contract_address, result_data.get("result", "{}"), timestamp)
-            self.messages[str(receipt)] = msg
-            return json.dumps(
-                {"status": "success", "detail": receipt},
-                separators=(",", ":"),
-                sort_keys=True,
-            )
-        except Exception as e:
-            return json.dumps(
-                {"status": "error", "detail": str(e)},
-                separators=(",", ":"),
-                sort_keys=True,
-            )
-
-    @gl.public.view
-    def get_message(self, receipt: str) -> str:
-        """Get details of a specific stored bridge message as JSON."""
-        print(f"get_message receipt: {receipt}")
-
-        if str(receipt) not in self.messages:
-            raise gl.vm.UserError(f"Message {receipt} not found")
-
-        return self._message_to_json(self.messages[str(receipt)])
-
-    @gl.public.view
-    def get_deal(self, receipt: str) -> str:
-        """Alias for get_message to match frontend call conventions."""
-        return self.get_message(receipt)
+        bet = Bet(
+            id=bet_id,
+            has_resolved=False,
+            game_date=game_date,
+            resolution_url=resolution_url,
+            team1=team1,
+            team2=team2,
+            predicted_winner=predicted_winner,
+            real_winner="",
+            real_score="",
+        )
+        self.bets.get_or_insert_default(sender)[bet_id] = bet
 
     @gl.public.write
-    def approve_manually(self, player_address: str, receipt: str, base_contract_address: str) -> str:
-        """Manually approve a bridge message without a web validation call."""
-        print(f"approve_manually player_address: {player_address}")
-        print(f"approve_manually receipt: {receipt}")
-        print(f"approve_manually base_contract_address: {base_contract_address}")
+    def resolve_bet(self, bet_id: str) -> None:
+        sender = gl.message.sender_address
 
-        if str(receipt) in self.messages:
-            return json.dumps(
-                {"status": "success", "detail": receipt},
-                separators=(",", ":"),
-                sort_keys=True,
-            )
+        if sender not in self.bets or bet_id not in self.bets[sender]:
+            raise gl.vm.UserError("Bet not found")
 
-        # datetime.now() is non-deterministic; capture it inside strict_eq
-        # so all validators record the identical timestamp.
-        with gl.eq_principle.strict_eq() as eq:
-            eq.set(str(int(datetime.now().timestamp())))
+        if self.bets[sender][bet_id].has_resolved:
+            raise gl.vm.UserError("Bet already resolved")
 
-        timestamp = int(eq.get())
+        bet = self.bets[sender][bet_id]
+        match_result = self._check_match(bet.resolution_url, bet.team1, bet.team2)
 
-        self.messages[str(receipt)] = self._build_message(
-            player_address, receipt, base_contract_address, json.dumps({"manual": True}), timestamp
-        )
-        return json.dumps(
-            {"status": "success", "detail": receipt},
-            separators=(",", ":"),
-            sort_keys=True,
-        )
+        if int(match_result["winner"]) < 0:
+            raise gl.vm.UserError("Match has not finished yet")
+
+        bet.has_resolved = True
+        bet.real_winner = str(match_result["winner"])
+        bet.real_score = match_result["score"]
+
+        if bet.real_winner == bet.predicted_winner:
+            if sender not in self.points:
+                self.points[sender] = u256(0)
+            self.points[sender] += u256(1)
+
+    @gl.public.view
+    def get_bets(self) -> dict:
+        return {k.as_hex: v for k, v in self.bets.items()}
+
+    @gl.public.view
+    def get_points(self) -> dict:
+        return {k.as_hex: v for k, v in self.points.items()}
+
+    @gl.public.view
+    def get_player_points(self, player_address: str) -> int:
+        return self.points.get(Address(player_address), u256(0))
