@@ -9,7 +9,7 @@ if (!PRIVATE_KEY) {
 
 const { chains } = await import("genlayer-js");
 const account = createAccount(PRIVATE_KEY);
-const client = createClient({ chain: chains.testnet, account });
+const client = createClient({ chain: chains.testnetAsimov, account });
 
 console.log("Deploying from:", account.address);
 const code = readFileSync("./contract.py", "utf8");
