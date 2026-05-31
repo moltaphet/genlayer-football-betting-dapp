@@ -11,7 +11,7 @@
 // ─────────────────────────────────────────────────────────────
 
 const CONFIG = Object.freeze({
-  CONTRACT_ADDRESS: '0x74469dd59D735419CF6bEAc7Bf62C91b52F70016',
+  CONTRACT_ADDRESS: import.meta.env.VITE_CONTRACT_ADDRESS,
   EXPLORER_TX_URL:  'https://explorer-studio.genlayer.com/tx/', 
   MIN_STAKE_GEN:    10,
   LOGO_BASE:        '/logos',
@@ -194,7 +194,7 @@ const Calculations = {
     const targets = [
       { element: el('calc-payout'), value: totalPayout.toFixed(2), prefix: '' },
       { element: el('net-profit'), value: netProfit.toFixed(2), prefix: '+' },
-      { element: el('calc-loss'), value: netProfit.toFixed(2), prefix: '-' } 
+      { element: el('calc-loss'), value: netProfit.toFixed(2), prefix: '-' }
     ];
 
     targets.forEach(item => {
@@ -457,7 +457,6 @@ const UI = {
   }
 };
 
-window.setOdds = (odds, btn) => UI.Terminal.setOdds(odds, btn);
 window.closeBetModal = () => UI.Modal.close();
 
 window.addEventListener('DOMContentLoaded', () => {

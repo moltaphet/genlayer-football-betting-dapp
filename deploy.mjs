@@ -1,18 +1,20 @@
 import { createClient, createAccount } from "genlayer-js";
 import { readFileSync } from "fs";
 
-const PRIVATE_KEY =
-  "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
-const API_URL = "https://api.genbetapp.com";
+const PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY;
+if (!PRIVATE_KEY) {
+  console.error("Error: set DEPLOYER_PRIVATE_KEY env var before running deploy.mjs");
+  process.exit(1);
+}
 
 const { chains } = await import("genlayer-js");
 const account = createAccount(PRIVATE_KEY);
-const client = createClient({ chain: chains.localnet, account });
+const client = createClient({ chain: chains.testnet, account });
 
 console.log("Deploying from:", account.address);
 const code = readFileSync("./contract.py", "utf8");
 
-const txHash = await client.deployContract({ code, args: [API_URL] });
+const txHash = await client.deployContract({ code, args: [] });
 console.log("Tx hash:", txHash);
 console.log("Waiting for FINALIZED...");
 

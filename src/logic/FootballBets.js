@@ -1,5 +1,5 @@
 import { createClient } from "genlayer-js";
-import { testnet } from "genlayer-js/chains";
+import { testnetAsimov } from "genlayer-js/chains";
 
 class FootballBets {
   contractAddress;
@@ -8,7 +8,7 @@ class FootballBets {
   constructor(contractAddress, account = null, studioUrl = null) {
     this.contractAddress = contractAddress;
     const config = {
-      chain: testnet,
+      chain: testnetAsimov,
       ...(account ? { account } : {}),
       ...(studioUrl ? { endpoint: studioUrl } : {}),
     };
@@ -16,7 +16,7 @@ class FootballBets {
   }
 
   updateAccount(account) {
-    this.client = createClient({ chain: testnet, account });
+    this.client = createClient({ chain: testnetAsimov, account });
   }
 
   async getBets() {

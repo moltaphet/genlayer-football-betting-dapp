@@ -241,9 +241,6 @@
     </main>
   </div>
 
-  <div class="flex items-center justify-center h-screen">
-    <div class="spinner">Loading...</div>
-  </div>
 </template>
 
 <script setup>

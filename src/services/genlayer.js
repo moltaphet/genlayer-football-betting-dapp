@@ -1,5 +1,5 @@
 import { createClient, createAccount as createGenLayerAccount, generatePrivateKey } from "genlayer-js";
-import { testnet } from "genlayer-js/chains";
+import { testnetAsimov } from "genlayer-js/chains";
 
 const accountPrivateKey = localStorage.getItem("accountPrivateKey") || null;
 export const account = accountPrivateKey ? createGenLayerAccount(accountPrivateKey) : null;
@@ -15,6 +15,6 @@ export const removeAccount = () => {
 };
 
 export const client = createClient({
-  chain: testnet,
+  chain: testnetAsimov,
   account
 });
