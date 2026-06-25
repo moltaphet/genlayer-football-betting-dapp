@@ -1,6 +1,5 @@
-# { "Depends": "py-genlayer:test" }
+# { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
 
-import json
 from dataclasses import dataclass
 from genlayer import *
 
@@ -27,8 +26,8 @@ class FootballBets(gl.Contract):
         pass
 
     def _check_match(self, resolution_url: str, team1: str, team2: str) -> dict:
-        def get_match_result() -> str:
-            web_data = gl.get_webpage(resolution_url, mode="text")
+        def leader_fn() -> dict:
+            web_data = gl.nondet.web.render(resolution_url, mode="text")
             task = f"""
 Extract the match result for:
 Team 1: {team1}
@@ -48,10 +47,30 @@ Rules:
   or -1 if the match has not finished yet.
 Respond ONLY with the JSON object. No extra text, no markdown fences.
 """
-            result = gl.exec_prompt(task).replace("```json", "").replace("```", "").strip()
-            return json.dumps(json.loads(result), sort_keys=True)
+            result = gl.nondet.exec_prompt(task, response_format="json")
+            return {"score": str(result["score"]), "winner": int(result["winner"])}
 
-        return json.loads(gl.eq_principle_strict_eq(get_match_result))
+        def validator_fn(leaders_res: gl.vm.Result) -> bool:
+            if not isinstance(leaders_res, gl.vm.Return):
+                return False
+
+            validator_result = leader_fn()
+            leader_winner = int(leaders_res.calldata["winner"])
+            validator_winner = validator_result["winner"]
+
+            # Gate check: leader and validator must agree on whether the match
+            # has finished (winner == -1 means unfinished).
+            if (leader_winner < 0) != (validator_winner < 0):
+                return False
+
+            # If both consider the match unfinished, that is agreement.
+            if leader_winner < 0 and validator_winner < 0:
+                return True
+
+            # Otherwise the derived winner (draw/team1/team2) must match exactly.
+            return leader_winner == validator_winner
+
+        return gl.vm.run_nondet_unsafe(leader_fn, validator_fn)
 
     @gl.public.write
     def create_bet(
