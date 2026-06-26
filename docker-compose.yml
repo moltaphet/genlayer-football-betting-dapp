@@ -1,8 +1,0 @@
-services:
-  validator:
-    image: yeagerai/genlayer-genvm-webdriver:0.0.3
-    ports:
-      - "8545:8545"
-      - "8080:8080"
-    environment:
-      - NODE_ENV=development
