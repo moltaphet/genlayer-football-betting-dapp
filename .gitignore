@@ -20,3 +20,11 @@ dist/
 
 # Logs
 *.log
+
+# Removed dev/config files (not part of the production app)
+docker-compose.yml
+vercel.json
+vite.config.js
+deploy.mjs
+package-lock.json
+TUTORIAL.md
