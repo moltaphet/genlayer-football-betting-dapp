@@ -6,41 +6,50 @@
 
 'use strict';
 
+import { GenBetContract } from './services/genbet.js';
+
 // ─────────────────────────────────────────────────────────────
 // 1. CONFIG
 // ─────────────────────────────────────────────────────────────
 
+const CONTRACT_ADDRESS = '0xf8895A42AECe956975083A2595b982321EF76615';
+const RPC_URL          = 'https://studio.genlayer.com/api';
+
 const CONFIG = Object.freeze({
-  CONTRACT_ADDRESS: import.meta.env.VITE_CONTRACT_ADDRESS,
-  EXPLORER_TX_URL:  'https://explorer-studio.genlayer.com/tx/', 
+  CONTRACT_ADDRESS,
+  RPC_URL,
+  EXPLORER_TX_URL:  'https://genlayer-explorer.vercel.app/tx/',
   MIN_STAKE_GEN:    10,
   LOGO_BASE:        '/logos',
-  STORAGE_KEY:      'genbet_global_storage',
   FALLBACK_LOGO:    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23021409'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-size='28' font-family='monospace' fill='%2310b981'%3E%3F%3C/text%3E%3C/svg%3E",
 });
 
+// `gameDate` (YYYY-MM-DD) is what the contract uses to build the BBC
+// resolution URL and to derive the bet id. `date` is display-only.
 const MATCHES = [
-  { 
-    id:'m1', 
-    date:'LIVE - Today',    
-    deadline: 1893456000, 
-    team1:'Real Madrid',  
-    team2:'Barcelona',    
-    logo1: `${CONFIG.LOGO_BASE}/spain-la-liga-2025-2026.football-logos.cc/256x256/real-madrid.football-logos.cc.png`,      
-    logo2: `${CONFIG.LOGO_BASE}/spain-la-liga-2025-2026.football-logos.cc/256x256/barcelona.football-logos.cc.png`,          
-    oddsT1: 1.85, 
-    oddsT2: 2.10 
+  {
+    id:'m1',
+    date:'LIVE - Today',
+    gameDate:'2026-06-26',
+    deadline: 1893456000,
+    team1:'Real Madrid',
+    team2:'Barcelona',
+    logo1: `${CONFIG.LOGO_BASE}/spain-la-liga-2025-2026.football-logos.cc/256x256/real-madrid.football-logos.cc.png`,
+    logo2: `${CONFIG.LOGO_BASE}/spain-la-liga-2025-2026.football-logos.cc/256x256/barcelona.football-logos.cc.png`,
+    oddsT1: 1.85,
+    oddsT2: 2.10
   },
-  { 
-    id:'m2', 
-    date:'May 8, 20:45',    
-    deadline: 1893456000, 
-    team1:'Arsenal',      
-    team2:'Man City',     
-    logo1: `${CONFIG.LOGO_BASE}/english-premier-league-2025-2026.football-logos.cc/256x256/arsenal.football-logos.cc.png`,  
-    logo2: `${CONFIG.LOGO_BASE}/english-premier-league-2025-2026.football-logos.cc/256x256/manchester-city.football-logos.cc.png`, 
-    oddsT1: 2.45, 
-    oddsT2: 1.65 
+  {
+    id:'m2',
+    date:'May 8, 20:45',
+    gameDate:'2026-05-08',
+    deadline: 1893456000,
+    team1:'Arsenal',
+    team2:'Man City',
+    logo1: `${CONFIG.LOGO_BASE}/english-premier-league-2025-2026.football-logos.cc/256x256/arsenal.football-logos.cc.png`,
+    logo2: `${CONFIG.LOGO_BASE}/english-premier-league-2025-2026.football-logos.cc/256x256/manchester-city.football-logos.cc.png`,
+    oddsT1: 2.45,
+    oddsT2: 1.65
   }
 ];
 
@@ -52,7 +61,9 @@ const STATE = {
   userAccount:    null,
   currentMatchId: 'm1',
   selectedOdds:    1.85,
-  globalBets:      [], 
+  bets:            [],   // bets fetched from the contract for the connected wallet
+  playerPoints:    0,
+  contract:        null, // GenBetContract instance
   isBetting:       false,
 };
 
@@ -65,7 +76,6 @@ const nowSec  = ()   => Math.floor(Date.now() / 1000);
 const findMatch = (id) => MATCHES.find((m) => m.id === id);
 
 function resolveProvider() {
-  if (window.genlayer && typeof window.genlayer.request === 'function') return window.genlayer;
   if (window.ethereum && typeof window.ethereum.request === 'function') return window.ethereum;
   return null;
 }
@@ -80,93 +90,120 @@ function setLogoSrc(imgEl, rawPath) {
 // WEB3 & STORAGE
 // ─────────────────────────────────────────────────────────────
 
-const Bets = {
-  save() {
-    localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(STATE.globalBets));
-  },
-
-  load() {
-    const stored = localStorage.getItem(CONFIG.STORAGE_KEY);
-    if (stored) {
-      try { STATE.globalBets = JSON.parse(stored); } catch (e) { STATE.globalBets = []; }
-    }
-  },
-
-  add(teamIndex, stake, txHash, match) {
-    const newBet = {
-      wallet: STATE.userAccount.toLowerCase(), 
-      id: Date.now(),
-      matchName: `${match.team1} vs ${match.team2}`,
-      pick: teamIndex === 1 ? match.team1 : match.team2,
-      odds: STATE.selectedOdds,
-      stake,
-      txHash,
-      deadline: match.deadline
-    };
-    STATE.globalBets.unshift(newBet);
-    this.save();
-    UI.History.render();
-    return newBet; 
-  }
-};
-
 const Web3 = {
   async connectWallet() {
     const provider = resolveProvider();
-    if (!provider) { UI.Toast.show('INSTALL EXTENSION', 'error'); return; }
+    if (!provider) { UI.Toast.show('INSTALL METAMASK', 'error'); return; }
     try {
       const accounts = await provider.request({ method: 'eth_requestAccounts' });
       STATE.userAccount = accounts[0];
+      // Pass the MetaMask address to genlayer-js; writes are signed via MetaMask.
+      STATE.contract = new GenBetContract(CONFIG.CONTRACT_ADDRESS, CONFIG.RPC_URL, STATE.userAccount);
+
       UI.Wallet.update(true);
-      UI.History.render(); 
       UI.Toast.show('CONNECTED', 'success');
+      await Bets.refresh();
     } catch (err) {
-      UI.Toast.show('FAILED', 'error');
+      console.error('connectWallet failed:', err);
+      UI.Toast.show('CONNECTION FAILED', 'error');
     }
   },
 
   disconnectWallet() {
     STATE.userAccount = null;
+    STATE.contract = null;
+    STATE.bets = [];
+    STATE.playerPoints = 0;
     UI.Wallet.update(false);
-    UI.History.render(); 
+    UI.History.render();
     UI.Toast.show('DISCONNECTED', 'info');
   },
 
   async sendBetTransaction(teamIndex) {
     if (STATE.isBetting) return;
-    if (!STATE.userAccount) { UI.Toast.show('CONNECT WALLET', 'error'); return; }
+    if (!STATE.userAccount || !STATE.contract) { UI.Toast.show('CONNECT WALLET', 'error'); return; }
 
     const match = findMatch(STATE.currentMatchId);
     const stake = parseFloat(el('bet-amount')?.value);
-    
+
     if (!stake || stake < CONFIG.MIN_STAKE_GEN) {
       UI.Toast.show(`MIN: ${CONFIG.MIN_STAKE_GEN} GEN`, 'error'); return;
     }
 
     STATE.isBetting = true;
     UI.Terminal.setLoadingState(true, teamIndex);
+    UI.Toast.show('CONFIRM IN METAMASK...', 'info');
 
     try {
-      const provider = resolveProvider();
-      const valueInWei = '0x' + (BigInt(Math.floor(stake)) * BigInt(10 ** 18)).toString(16);
-      
-      const txHash = await provider.request({
-        method: 'eth_sendTransaction',
-        params: [{ to: CONFIG.CONTRACT_ADDRESS, from: STATE.userAccount, value: valueInWei, data: '0x' }],
-      });
+      const predictedWinner = teamIndex === 1 ? '1' : '2';
+      const { txHash } = await STATE.contract.createBet(
+        match.gameDate, match.team1, match.team2, predictedWinner
+      );
 
-      const newBet = Bets.add(teamIndex, stake, txHash, match);
-      UI.Modal.show(newBet); // نمایش رسید به جای Toast ساده
-      
+      const receipt = {
+        wallet: STATE.userAccount.toLowerCase(),
+        matchName: `${match.team1} vs ${match.team2}`,
+        pick: teamIndex === 1 ? match.team1 : match.team2,
+        odds: STATE.selectedOdds,
+        stake,
+        txHash,
+      };
+      UI.Modal.show(receipt);
+
       if (el('bet-amount')) el('bet-amount').value = '';
       Calculations.update();
+      await Bets.refresh();
     } catch (err) {
-      UI.Toast.show('TRANSACTION FAILED', 'error');
+      console.error('createBet failed:', err);
+      UI.Toast.show(Bets.errMsg(err, 'BET FAILED'), 'error');
     } finally {
       STATE.isBetting = false;
       UI.Terminal.setLoadingState(false);
       UI.Terminal.refresh(match);
     }
+  },
+
+  async resolveBet(betId) {
+    if (!STATE.contract) { UI.Toast.show('CONNECT WALLET', 'error'); return; }
+    UI.Toast.show('RESOLVING...', 'info');
+    try {
+      const { txHash } = await STATE.contract.resolveBet(betId);
+      UI.Toast.show('BET RESOLVED', 'success');
+      await Bets.refresh();
+      return txHash;
+    } catch (err) {
+      console.error('resolveBet failed:', err);
+      UI.Toast.show(Bets.errMsg(err, 'RESOLVE FAILED'), 'error');
+    }
+  }
+};
+
+const Bets = {
+  // Pull the connected wallet's bets + points from the contract and re-render.
+  async refresh() {
+    if (!STATE.contract || !STATE.userAccount) { UI.History.render(); return; }
+    try {
+      const [bets, points] = await Promise.all([
+        STATE.contract.getBets(),
+        STATE.contract.getPlayerPoints(STATE.userAccount),
+      ]);
+      STATE.bets = bets;
+      STATE.playerPoints = points;
+    } catch (err) {
+      console.error('Bets.refresh failed:', err);
+      STATE.bets = [];
+    }
+    UI.History.render();
+  },
+
+  errMsg(err, fallback) {
+    const raw = (err && (err.message || err.shortMessage)) || '';
+    if (/already exists/i.test(raw)) return 'BET ALREADY EXISTS';
+    if (/not finished/i.test(raw))  return 'MATCH NOT FINISHED';
+    if (/already resolved/i.test(raw)) return 'ALREADY RESOLVED';
+    if (/not found/i.test(raw)) return 'BET NOT FOUND';
+    if (/user rejected|denied/i.test(raw)) return 'REJECTED IN WALLET';
+    return fallback;
   }
 };
 
@@ -378,23 +415,29 @@ const UI = {
         return;
       }
 
-      const filteredBets = STATE.globalBets.filter(b => b.wallet === STATE.userAccount.toLowerCase());
-
-      if (filteredBets.length === 0) {
+      if (STATE.bets.length === 0) {
         tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-slate-400 text-[10px] uppercase">NO HISTORY FOUND</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = filteredBets.map(bet => `
+      tbody.innerHTML = STATE.bets.map(bet => {
+        const pick = bet.predicted_winner === '1' ? bet.team1 : bet.team2;
+        const resolved = bet.has_resolved === true || bet.has_resolved === 'true';
+        const status = resolved
+          ? `<span class="text-green-600">${bet.real_score || 'RESOLVED'}</span>`
+          : `<button data-bet-id="${bet.id}" class="resolve-btn text-blue-500 hover:underline font-black text-[9px] uppercase">RESOLVE ↻</button>`;
+        return `
         <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-          <td class="py-4 px-4 font-black text-slate-800 text-[10px] w-[35%] text-left uppercase">${bet.matchName}</td>
-          <td class="py-4 px-4 text-center text-[10px] font-bold text-slate-600 w-[20%] uppercase">${bet.pick}</td>
-          <td class="py-4 px-4 text-center font-black text-slate-800 text-[10px] w-[25%]">${bet.stake.toFixed(2)} GEN</td>
-          <td class="py-4 px-4 text-right w-[20%]">
-            <a href="${CONFIG.EXPLORER_TX_URL}${bet.txHash}" target="_blank" class="text-blue-500 hover:underline font-bold text-[9px] whitespace-nowrap uppercase">VIEW TX ↗</a>
-          </td>
+          <td class="py-4 px-4 font-black text-slate-800 text-[10px] w-[40%] text-left uppercase">${bet.team1} vs ${bet.team2}</td>
+          <td class="py-4 px-4 text-center text-[10px] font-bold text-slate-600 w-[30%] uppercase">${pick}</td>
+          <td class="py-4 px-4 text-right font-black text-[10px] w-[30%]">${status}</td>
         </tr>
-      `).join('');
+        `;
+      }).join('');
+
+      tbody.querySelectorAll('.resolve-btn').forEach(btn => {
+        btn.addEventListener('click', () => Web3.resolveBet(btn.dataset.betId));
+      });
     }
   },
 
@@ -459,9 +502,16 @@ const UI = {
 
 window.closeBetModal = () => UI.Modal.close();
 
-window.addEventListener('DOMContentLoaded', () => {
-  Bets.load();
+// Expose contract actions for manual use / debugging from the console.
+window.GenBet = {
+  resolveBet: (betId) => Web3.resolveBet(betId),
+  getBets:    () => STATE.contract?.getBets(),
+  getPoints:  () => STATE.contract?.getPoints(),
+  getPlayerPoints: (addr) => STATE.contract?.getPlayerPoints(addr || STATE.userAccount),
+  contractAddress: CONFIG.CONTRACT_ADDRESS,
+};
 
+window.addEventListener('DOMContentLoaded', () => {
   el('connect-btn')?.addEventListener('click', () => {
     if (!STATE.userAccount) Web3.connectWallet();
     else el('disconnect-menu')?.classList.toggle('hidden');

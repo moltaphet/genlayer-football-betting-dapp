@@ -3,6 +3,10 @@
 from dataclasses import dataclass
 from genlayer import *
 
+# Error classification prefix for deterministic business-logic failures.
+# Validators compare these by exact match to reach consensus on the failure path.
+ERROR_EXPECTED = "[EXPECTED]"
+
 
 @allow_storage
 @dataclass
@@ -19,11 +23,14 @@ class Bet:
 
 
 class FootballBets(gl.Contract):
-    bets: TreeMap[Address, TreeMap[str, Bet]]
+    bets: TreeMap[str, Bet]
     points: TreeMap[Address, u256]
 
     def __init__(self):
         pass
+
+    def _bet_key(self, address: Address, bet_id: str) -> str:
+        return address.as_hex + ":" + bet_id
 
     def _check_match(self, resolution_url: str, team1: str, team2: str) -> dict:
         def leader_fn() -> dict:
@@ -81,9 +88,10 @@ Respond ONLY with the JSON object. No extra text, no markdown fences.
         )
         sender = gl.message.sender_address
         bet_id = f"{game_date}_{team1}_{team2}".lower()
+        key = self._bet_key(sender, bet_id)
 
-        if sender in self.bets and bet_id in self.bets[sender]:
-            raise gl.vm.UserError("Bet already exists for this match")
+        if key in self.bets:
+            raise gl.vm.UserError(f"{ERROR_EXPECTED} Bet already exists for this match")
 
         bet = Bet(
             id=bet_id,
@@ -96,23 +104,24 @@ Respond ONLY with the JSON object. No extra text, no markdown fences.
             real_winner="",
             real_score="",
         )
-        self.bets.get_or_insert_default(sender)[bet_id] = bet
+        self.bets[key] = bet
 
     @gl.public.write
     def resolve_bet(self, bet_id: str) -> None:
         sender = gl.message.sender_address
+        key = self._bet_key(sender, bet_id)
 
-        if sender not in self.bets or bet_id not in self.bets[sender]:
-            raise gl.vm.UserError("Bet not found")
+        if key not in self.bets:
+            raise gl.vm.UserError(f"{ERROR_EXPECTED} Bet not found")
 
-        if self.bets[sender][bet_id].has_resolved:
-            raise gl.vm.UserError("Bet already resolved")
+        if self.bets[key].has_resolved:
+            raise gl.vm.UserError(f"{ERROR_EXPECTED} Bet already resolved")
 
-        bet = self.bets[sender][bet_id]
+        bet = self.bets[key]
         match_result = self._check_match(bet.resolution_url, bet.team1, bet.team2)
 
         if int(match_result["winner"]) < 0:
-            raise gl.vm.UserError("Match has not finished yet")
+            raise gl.vm.UserError(f"{ERROR_EXPECTED} Match has not finished yet")
 
         bet.has_resolved = True
         bet.real_winner = str(match_result["winner"])
@@ -125,7 +134,13 @@ Respond ONLY with the JSON object. No extra text, no markdown fences.
 
     @gl.public.view
     def get_bets(self) -> dict:
-        return {k.as_hex: v for k, v in self.bets.items()}
+        sender = gl.message.sender_address
+        prefix = sender.as_hex + ":"
+        return {
+            k[len(prefix):]: v
+            for k, v in self.bets.items()
+            if k.startswith(prefix)
+        }
 
     @gl.public.view
     def get_points(self) -> dict:

@@ -1,8 +1,22 @@
+# Python
 __pycache__/
-node_modules/
-.env
+*.pyc
+.pytest_cache/
 .venv/
-.vercel
-.env*.local
+
+# Node
+node_modules/
 dist/
+
+# Environment / secrets
+.env
+.env*.local
+.vercel
+
+# Editor / OS
+.claude/
 .DS_Store
+*.code-workspace
+
+# Logs
+*.log

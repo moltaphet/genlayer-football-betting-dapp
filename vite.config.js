@@ -1,9 +1,7 @@
 import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
 import path from 'path'
 
 export default defineConfig({
-  plugins: [vue()],
   root: './',
   publicDir: 'public',
   build: {
@@ -12,7 +10,6 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'index.html'),
-        app:  path.resolve(__dirname, 'app.html'),
       },
     },
   },
