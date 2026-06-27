@@ -4,6 +4,10 @@ __pycache__/
 .pytest_cache/
 .venv/
 
+# GenLayer test artifacts
+.gltest_artifacts/
+.gltest_cache/
+
 # Node
 node_modules/
 dist/

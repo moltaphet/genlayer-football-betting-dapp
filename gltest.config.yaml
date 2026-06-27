@@ -1,0 +1,16 @@
+# GenLayer test configuration.
+# studionet is gasless (no funding needed) and matches deploy.mjs, so it is the
+# default target for integration tests. Override per-run with: --network <name>
+networks:
+  default: studionet
+  # Preconfigured network: empty mapping inherits studionet's RPC URL and
+  # auto-generated gasless accounts.
+  studionet: {}
+
+paths:
+  # Tests load the contract via contract_file_path, but this keeps name-based
+  # lookups (get_contract_factory("FootballBets")) working too.
+  contracts: .
+  artifacts: .gltest_artifacts
+
+environment: .env
