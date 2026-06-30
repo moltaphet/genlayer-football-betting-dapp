@@ -25,31 +25,93 @@ const CONFIG = Object.freeze({
 });
 
 // `gameDate` (YYYY-MM-DD) is what the contract uses to build the BBC
-// resolution URL and to derive the bet id. `date` is display-only.
+// resolution URL (bbc.com/sport/football/scores-fixtures/<gameDate>) and to
+// derive the bet id. `date` is display-only. `deadline` is a far-future unix
+// time so betting stays open on every fixture in the demo.
+//
+// Real 2026 FIFA World Cup Round of 32 fixtures (Jun 30 – Jul 3, 2026), the
+// knockout matches current/upcoming as of today (Jun 30). National-team logos
+// live under /logos/fifa-world-cup-2026.football-logos.cc/256x256/.
+const WC_LOGO = `${CONFIG.LOGO_BASE}/fifa-world-cup-2026.football-logos.cc/256x256`;
+const OPEN_DEADLINE = 1893456000; // 2030-01-01 — keeps all fixtures bettable
+const wcLogo = (file) => `${WC_LOGO}/${file}.football-logos.cc.png`;
+
 const MATCHES = [
+  // ── Tuesday, June 30, 2026 (today) ──────────────────────────
   {
-    id:'m1',
-    date:'LIVE - Today',
-    gameDate:'2026-06-26',
-    deadline: 1893456000,
-    team1:'Real Madrid',
-    team2:'Barcelona',
-    logo1: `${CONFIG.LOGO_BASE}/spain-la-liga-2025-2026.football-logos.cc/256x256/real-madrid.football-logos.cc.png`,
-    logo2: `${CONFIG.LOGO_BASE}/spain-la-liga-2025-2026.football-logos.cc/256x256/barcelona.football-logos.cc.png`,
-    oddsT1: 1.85,
-    oddsT2: 2.10
+    id:'m1', date:'Today · Jun 30, 13:00 ET', gameDate:'2026-06-30', deadline: OPEN_DEADLINE,
+    team1:'Ivory Coast', team2:'Norway',
+    logo1: wcLogo('cote-d-ivoire-national-team'), logo2: wcLogo('norway-national-team'),
+    oddsT1: 2.05, oddsT2: 1.90
   },
   {
-    id:'m2',
-    date:'May 8, 20:45',
-    gameDate:'2026-05-08',
-    deadline: 1893456000,
-    team1:'Arsenal',
-    team2:'Man City',
-    logo1: `${CONFIG.LOGO_BASE}/english-premier-league-2025-2026.football-logos.cc/256x256/arsenal.football-logos.cc.png`,
-    logo2: `${CONFIG.LOGO_BASE}/english-premier-league-2025-2026.football-logos.cc/256x256/manchester-city.football-logos.cc.png`,
-    oddsT1: 2.45,
-    oddsT2: 1.65
+    id:'m2', date:'Today · Jun 30, 17:00 ET', gameDate:'2026-06-30', deadline: OPEN_DEADLINE,
+    team1:'France', team2:'Sweden',
+    logo1: wcLogo('france-national-team'), logo2: wcLogo('sweden-national-team'),
+    oddsT1: 1.40, oddsT2: 3.10
+  },
+  {
+    id:'m3', date:'Today · Jun 30, 21:00 ET', gameDate:'2026-06-30', deadline: OPEN_DEADLINE,
+    team1:'Mexico', team2:'Ecuador',
+    logo1: wcLogo('mexico-national-team'), logo2: wcLogo('ecuador-national-team'),
+    oddsT1: 1.95, oddsT2: 2.05
+  },
+  // ── Wednesday, July 1, 2026 ─────────────────────────────────
+  {
+    id:'m4', date:'Jul 1, 12:00 ET', gameDate:'2026-07-01', deadline: OPEN_DEADLINE,
+    team1:'England', team2:'DR Congo',
+    logo1: wcLogo('england-national-team'), logo2: wcLogo('congo-dr-national-team'),
+    oddsT1: 1.35, oddsT2: 3.40
+  },
+  {
+    id:'m5', date:'Jul 1, 16:00 ET', gameDate:'2026-07-01', deadline: OPEN_DEADLINE,
+    team1:'Belgium', team2:'Senegal',
+    logo1: wcLogo('belgium-national-team'), logo2: wcLogo('senegal-national-team'),
+    oddsT1: 1.75, oddsT2: 2.15
+  },
+  {
+    id:'m6', date:'Jul 1, 20:00 ET', gameDate:'2026-07-01', deadline: OPEN_DEADLINE,
+    team1:'USA', team2:'Bosnia & Herzegovina',
+    logo1: wcLogo('usa-national-team'), logo2: wcLogo('bosnia-and-herzegovina-national-team'),
+    oddsT1: 1.80, oddsT2: 2.15
+  },
+  // ── Thursday, July 2, 2026 ──────────────────────────────────
+  {
+    id:'m7', date:'Jul 2, 15:00 ET', gameDate:'2026-07-02', deadline: OPEN_DEADLINE,
+    team1:'Spain', team2:'Austria',
+    logo1: wcLogo('spain-national-team'), logo2: wcLogo('austria-national-team'),
+    oddsT1: 1.30, oddsT2: 3.80
+  },
+  {
+    id:'m8', date:'Jul 2, 19:00 ET', gameDate:'2026-07-02', deadline: OPEN_DEADLINE,
+    team1:'Portugal', team2:'Croatia',
+    logo1: wcLogo('portuguese-football-federation'), logo2: wcLogo('croatia-national-team'),
+    oddsT1: 1.55, oddsT2: 2.55
+  },
+  {
+    id:'m9', date:'Jul 2, 23:00 ET', gameDate:'2026-07-02', deadline: OPEN_DEADLINE,
+    team1:'Switzerland', team2:'Algeria',
+    logo1: wcLogo('switzerland-national-team'), logo2: wcLogo('algeria-national-team'),
+    oddsT1: 1.90, oddsT2: 2.05
+  },
+  // ── Friday, July 3, 2026 ────────────────────────────────────
+  {
+    id:'m10', date:'Jul 3, 14:00 ET', gameDate:'2026-07-03', deadline: OPEN_DEADLINE,
+    team1:'Australia', team2:'Egypt',
+    logo1: wcLogo('australia-national-team'), logo2: wcLogo('egypt-national-team'),
+    oddsT1: 2.30, oddsT2: 1.70
+  },
+  {
+    id:'m11', date:'Jul 3, 18:00 ET', gameDate:'2026-07-03', deadline: OPEN_DEADLINE,
+    team1:'Argentina', team2:'Cape Verde',
+    logo1: wcLogo('argentina-national-team'), logo2: wcLogo('cabo-verde-national-team'),
+    oddsT1: 1.25, oddsT2: 4.50
+  },
+  {
+    id:'m12', date:'Jul 3, 21:30 ET', gameDate:'2026-07-03', deadline: OPEN_DEADLINE,
+    team1:'Colombia', team2:'Ghana',
+    logo1: wcLogo('colombia-national-team'), logo2: wcLogo('ghana-national-team'),
+    oddsT1: 1.60, oddsT2: 2.40
   }
 ];
 
