@@ -115,6 +115,7 @@ const Web3 = {
     STATE.bets = [];
     STATE.playerPoints = 0;
     UI.Wallet.update(false);
+    UI.Sync.set('idle');
     UI.History.render();
     UI.Toast.show('DISCONNECTED', 'info');
   },
@@ -181,18 +182,35 @@ const Web3 = {
 const Bets = {
   // Pull the connected wallet's bets + points from the contract and re-render.
   async refresh() {
-    if (!STATE.contract || !STATE.userAccount) { UI.History.render(); return; }
-    try {
-      const [bets, points] = await Promise.all([
-        STATE.contract.getBets(),
-        STATE.contract.getPlayerPoints(STATE.userAccount),
-      ]);
-      STATE.bets = bets;
-      STATE.playerPoints = points;
-    } catch (err) {
-      console.error('Bets.refresh failed:', err);
-      STATE.bets = [];
+    if (!STATE.contract || !STATE.userAccount) { UI.Sync.set('idle'); UI.History.render(); return; }
+    UI.Sync.set('syncing');
+
+    // Decouple the two view calls. They are independent gen_call reads, so a
+    // failure fetching points must NOT discard a successful bet history (the
+    // old Promise.all wiped STATE.bets whenever EITHER call rejected, which
+    // left the table blank on any transient RPC hiccup).
+    const [betsRes, pointsRes] = await Promise.allSettled([
+      STATE.contract.getBets(),
+      STATE.contract.getPlayerPoints(STATE.userAccount),
+    ]);
+
+    if (betsRes.status === 'fulfilled') {
+      STATE.bets = betsRes.value;
+      UI.Sync.set('synced');
+    } else {
+      // Keep the last-known bets on screen and make the failure visible
+      // instead of silently swallowing it.
+      console.error('getBets failed:', betsRes.reason);
+      UI.Sync.set('error');
+      UI.Toast.show('HISTORY SYNC FAILED', 'error');
     }
+
+    if (pointsRes.status === 'fulfilled') {
+      STATE.playerPoints = pointsRes.value;
+    } else {
+      console.error('getPlayerPoints failed:', pointsRes.reason);
+    }
+
     UI.History.render();
   },
 
@@ -265,6 +283,23 @@ const Calculations = {
 // ─────────────────────────────────────────────────────────────
 
 const UI = {
+  // Drives the betting-history status chip. Previously this label was a static
+  // "Syncing with GenLayer..." string that never updated, so the section looked
+  // perpetually stuck even when reads succeeded (or silently failed).
+  Sync: {
+    set(state) {
+      const chip = el('sync-status');
+      if (!chip) return;
+      const labels = {
+        idle:    'Connect wallet to sync',
+        syncing: 'Syncing with GenLayer...',
+        synced:  'Synced with GenLayer',
+        error:   'Sync failed — retry',
+      };
+      chip.textContent = labels[state] || labels.idle;
+    }
+  },
+
   Wallet: {
     update(connected) {
       const btn = el('connect-btn');
@@ -530,4 +565,18 @@ window.addEventListener('DOMContentLoaded', () => {
   el('bet-t2')?.addEventListener('click', () => Web3.sendBetTransaction(2));
 
   UI.Match.load('m1');
+
+  // If MetaMask already authorized this site, reconnect silently so the bet
+  // history loads on page refresh without requiring another click. Uses
+  // eth_accounts (never prompts) and only proceeds when an account exists.
+  (async () => {
+    const provider = resolveProvider();
+    if (!provider) return;
+    try {
+      const accounts = await provider.request({ method: 'eth_accounts' });
+      if (accounts && accounts.length) await Web3.connectWallet();
+    } catch (err) {
+      console.error('silent reconnect failed:', err);
+    }
+  })();
 });
