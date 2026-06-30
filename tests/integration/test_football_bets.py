@@ -67,6 +67,32 @@ def test_get_player_points_unknown_is_zero(contract):
     assert contract.get_player_points(args=[zero_addr]).call() == 0
 
 
+def test_world_cup_fixture_roundtrips(contract):
+    """Mirror a real frontend payload: World Cup team names carry spaces and
+    special characters ('&'), and gameDate drives the BBC resolution URL. The
+    bet must still produce a valid id and round-trip through get_bets unchanged.
+    """
+    game_date = "2026-07-01"
+    team1, team2 = "USA", "Bosnia & Herzegovina"
+
+    receipt = contract.create_bet(args=[game_date, team1, team2, "2"]).transact()
+    assert tx_execution_succeeded(receipt)
+
+    bets = contract.get_bets(args=[]).call()
+    bet_id = _bet_id(game_date, team1, team2)
+    assert bet_id in bets, f"expected {bet_id} in {list(bets.keys())}"
+
+    bet = bets[bet_id]
+    assert bet["team1"] == team1
+    assert bet["team2"] == team2
+    assert bet["predicted_winner"] == "2"
+    assert bet["has_resolved"] is False
+    # gameDate must build the BBC fixtures URL the frontend/resolver rely on.
+    assert bet["resolution_url"].endswith(
+        "/sport/football/scores-fixtures/2026-07-01"
+    )
+
+
 @pytest.mark.slow
 def test_resolve_unfinished_match_fails(contract):
     """Real web + LLM call: a future match is unfinished, so resolve must fail."""
