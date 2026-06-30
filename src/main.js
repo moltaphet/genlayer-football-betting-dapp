@@ -18,7 +18,7 @@ const RPC_URL          = 'https://studio.genlayer.com/api';
 const CONFIG = Object.freeze({
   CONTRACT_ADDRESS,
   RPC_URL,
-  EXPLORER_TX_URL:  'https://genlayer-explorer.vercel.app/tx/',
+  EXPLORER_TX_URL:  'https://explorer-studio.genlayer.com/tx/',
   MIN_STAKE_GEN:    10,
   LOGO_BASE:        '/logos',
   FALLBACK_LOGO:    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23021409'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-size='28' font-family='monospace' fill='%2310b981'%3E%3F%3C/text%3E%3C/svg%3E",
